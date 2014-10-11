@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="MicroJava Editor"
+            extensions="mj"
+            icon="icons/microjava.gif"
+            contributorClass="net.feichti.microjavaeditor.MJActionContributor"
+            class="net.feichti.microjavaeditor.MJEditor"
+            id="net.feichti.microjavaeditor.MJEditor">
+      </editor>
+   </extension>
+   <extension
+         name="MicroJava Document Setup Participant"
+         point="org.eclipse.core.filebuffers.documentSetup">
+      <participant
+            class="net.feichti.microjavaeditor.MJDocumentSetupParticipant"
+            extensions="mj">
+      </participant>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="net.feichti.microjavaeditor.preferences.MJPreferencePage"
+            id="net.feichti.microjavaeditor.preferences.MJPreferencePage"
+            name="MicroJava">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="net.feichti.microjavaeditor.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
+
+</plugin>
