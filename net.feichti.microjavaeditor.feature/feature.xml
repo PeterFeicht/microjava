@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="net.feichti.microjavaeditor.feature"
+      label="MicroJava Editor"
+      version="1.0.0.qualifier">
+
+   <description>
+      An editor for MicroJava files (*.mj) with syntax highlighting.
+   </description>
+
+   <copyright>
+      No copyright.
+   </copyright>
+
+   <license url="">
+      No license agreement.
+   </license>
+
+   <requires>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.jface.text"/>
+      <import plugin="org.eclipse.ui.editors"/>
+      <import plugin="org.eclipse.ui.views"/>
+   </requires>
+
+   <plugin
+         id="net.feichti.microjavaeditor"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>
