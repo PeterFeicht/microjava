@@ -26,7 +26,7 @@ public class MicroJavaEditorPlugin extends AbstractUIPlugin
 	public static final String IMG_PROGRAM = "package_obj.gif";
 	public static final String IMG_CLASS = "class_obj.gif";
 	public static final String IMG_FIELD = "field_public_obj.gif";
-	public static final String IMG_VARIABLE = "field_default_obj.gif";
+	public static final String IMG_VARIABLE = "field_protected_obj.gif";
 	public static final String IMG_CONSTANT_OVERLAY = "constr_ovr.gif";
 	public static final String IMG_METHOD = "methpub_obj.gif";
 	public static final String IMG_MAIN_OVERLAY = "run_co.gif";
