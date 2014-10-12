@@ -10,6 +10,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -102,6 +103,20 @@ public class MicroJavaEditorPlugin extends AbstractUIPlugin
 			return d;
 		}
 		return imageDescriptorFromPlugin(PLUGIN_ID, key);
+	}
+	
+	/**
+	 * Get an image for the specified key.
+	 * 
+	 * @param key Either one of the {@code IMG_} constants, or a plugin-relative path to an icon
+	 * @return Image for the key or path
+	 */
+	public Image getImage(String key) {
+		Image i = getImageRegistry().get(key);
+		if(i != null) {
+			return i;
+		}
+		return getImageDescriptor(key).createImage();
 	}
 	
 	/**
