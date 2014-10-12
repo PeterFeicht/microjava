@@ -7,7 +7,7 @@ prog : 'program' Ident (constDecl | varDecl | classDecl)* '{' methodDecl* '}' EO
 /*
  * Rules
  */
-constDecl  : 'final' type Ident '=' ( Number | CharConst ) ';' ;
+constDecl  : 'final' type Ident '=' literal ';' ;
 varDecl    : type Ident ( ',' Ident )* ';' ;
 classDecl  : 'class' Ident '{' varDecl* '}' ;
 methodDecl : ( type | 'void' ) Ident '(' formPars? ')' varDecl* block ;
@@ -22,7 +22,7 @@ statement : designator ( assignop expr | actPars | '++' | '--' ) ';'
           | 'break' ';'
           | 'return' expr? ';'
           | 'read' '(' designator ')' ';'
-          | 'print' '(' expr ( ';' Number )? ')' ';'
+          | 'print' '(' expr ( ',' Number )? ')' ';'
           | block
           | ';' ;
 assignop  : '=' | '+=' | '-=' | '*=' | '/=' | '%=' ;
@@ -36,13 +36,13 @@ relop     : '==' | '!=' | '>' | '>=' | '<' | '<=' ;
 expr       : '-'? term ( addop term )* ;
 term       : factor ( mulop factor )* ;
 factor     : designator actPars?
-           | Number
-           | CharConst
+           | literal
            | 'new' Ident ( '[' expr ']' )?
            | '(' expr ')' ;
 designator : Ident ( '.' Ident | '[' expr ']' )* ;
 addop      : '+' | '-' ;
 mulop      : '*' | '/' | '%' ;
+literal    : Number | CharConst ;
 
 /*
  * Keywords
