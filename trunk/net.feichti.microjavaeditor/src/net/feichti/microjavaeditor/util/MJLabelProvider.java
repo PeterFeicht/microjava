@@ -1,13 +1,18 @@
 package net.feichti.microjavaeditor.util;
 
+import java.util.Iterator;
+
 import net.feichti.microjavaeditor.MicroJavaEditorPlugin;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ClassDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ConstDeclContext;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser.FormParsContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser.TypeContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
 
-import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
@@ -66,11 +71,72 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 	
 	@Override
 	public StyledString getStyledText(Object element) {
-		if(element instanceof ParseTree) {
-			ParseTree tree = (ParseTree)element;
-			return new StyledString(tree.getText());
+		String name, type;
+		
+		if(element instanceof ClassDeclContext) {
+			ClassDeclContext clazz = (ClassDeclContext)element;
+			name = clazz.Ident().getText();
+			type = "";
+			
+		} else if(element instanceof VarDeclContext) {
+			VarDeclContext var = (VarDeclContext)element;
+			Iterator<TerminalNode> it = var.Ident().iterator();
+			StringBuilder sb = new StringBuilder();
+			sb.append(it.next().getText());
+			while(it.hasNext()) {
+				sb.append(", ").append(it.next().getText());
+			}
+			name = sb.toString();
+			type = var.type().getText();
+			
+		} else if(element instanceof ConstDeclContext) {
+			ConstDeclContext con = (ConstDeclContext)element;
+			name = con.Ident().getText();
+			type = con.type().getText();
+			
+		} else if(element instanceof MethodDeclContext) {
+			MethodDeclContext method = (MethodDeclContext)element;
+			StringBuilder sb = new StringBuilder();
+			sb.append(method.Ident().getText()).append('(');
+			
+			FormParsContext pars = method.formPars();
+			if(pars != null) {
+				Iterator<TypeContext> types = pars.type().iterator();
+				if(types.hasNext()) {
+					sb.append(types.next().getText());
+				}
+				while(types.hasNext()) {
+					sb.append(", ").append(types.next().getText());
+				}
+			}
+			sb.append(')');
+			name = sb.toString();
+			
+			TypeContext t = method.type();
+			if(t != null) {
+				type = t.getText();
+			} else if(method.getToken(MicroJavaParser.VOID, 0) != null) {
+				type = "void";
+			} else {
+				type = "??";
+			}
+			
+		} else if(element instanceof ProgContext) {
+			ProgContext prog = (ProgContext)element;
+			name = prog.Ident().getText();
+			type = "program";
+			
+		} else {
+			name = "<unknown>";
+			type = element.getClass().getSimpleName();
 		}
-		return new StyledString(element.getClass().getSimpleName() + ": " + element.toString());
+		
+		StyledString ret = new StyledString(name);
+		if(!type.isEmpty()) {
+			ret.append(" : ", StyledString.DECORATIONS_STYLER);
+			ret.append(type, StyledString.DECORATIONS_STYLER);
+		}
+		return ret;
 	}
 	
 	@Override
