@@ -8,6 +8,7 @@ import net.feichti.microjavaeditor.antlr4.MicroJavaParser;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ClassDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
+import net.feichti.microjavaeditor.util.MJLabelProvider;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -19,7 +20,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -143,15 +143,7 @@ public class MJContentOutlinePage extends ContentOutlinePage
 		
 		TreeViewer viewer = getTreeViewer();
 		viewer.setContentProvider(new ChildrenProvider());
-		viewer.setLabelProvider(new LabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if(element == null) {
-					return "null";
-				}
-				return element.getClass().getSimpleName() + ": " + element.toString();
-			}
-		});
+		viewer.setLabelProvider(MJLabelProvider.create());
 		viewer.addSelectionChangedListener(this);
 		
 		if(mInput != null) {
