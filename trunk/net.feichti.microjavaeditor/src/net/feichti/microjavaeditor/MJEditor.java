@@ -1,7 +1,5 @@
 package net.feichti.microjavaeditor;
 
-import net.feichti.microjavaeditor.util.MJColorManager;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IMenuManager;
@@ -24,11 +22,9 @@ public class MJEditor extends TextEditor
 	public final static String MATCHING_BRACKETS_COLOR = "matchingBracketsColor";
 	
 	private MJContentOutlinePage mOutlinePage;
-	private MJColorManager mColorManager;
 	private ICharacterPairMatcher mBracketMatcher;
 	
 	public MJEditor() {
-		mColorManager = new MJColorManager();
 		mBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '(', ')', '{', '}', '[', ']' });
 	}
 	
@@ -37,7 +33,6 @@ public class MJEditor extends TextEditor
 		if(mOutlinePage != null) {
 			mOutlinePage.dispose();
 		}
-		mColorManager.dispose();
 		super.dispose();
 	}
 	
