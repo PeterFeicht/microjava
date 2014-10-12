@@ -3,14 +3,21 @@ package net.feichti.microjavaeditor;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jface.text.BadLocationException;
+import net.feichti.microjavaeditor.antlr4.MicroJavaLexer;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ClassDeclContext;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
+
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BufferedTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.tree.Tree;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.DefaultPositionUpdater;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IPositionUpdater;
-import org.eclipse.jface.text.Position;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -24,118 +31,94 @@ import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
 public class MJContentOutlinePage extends ContentOutlinePage
 {
-	/**
-	 * A segment element.
-	 */
-	protected static class Segment
+	protected class ChildrenProvider implements ITreeContentProvider
 	{
-		public String name;
-		public Position position;
+		protected static final String ELEMENTS = "__microjava_elements";
+		protected IPositionUpdater mPositionUpdater = new DefaultPositionUpdater(ELEMENTS);
+		protected Object mRoot = null;
 		
-		public Segment(String name, Position position) {
-			this.name = name;
-			this.position = position;
-		}
-		
-		@Override
-		public String toString() {
-			return name;
-		}
-	}
-	
-	/**
-	 * Divides the editor's document into ten segments and provides elements for them.
-	 */
-	protected class ContentProvider implements ITreeContentProvider
-	{
-		protected final static String SEGMENTS = "__java_segments";
-		protected IPositionUpdater mPositionUpdater = new DefaultPositionUpdater(SEGMENTS);
-		protected List<Segment> mContent = new ArrayList<Segment>(10);
-		
-		protected void parse(IDocument document) {
-			int lines = document.getNumberOfLines();
-			int increment = Math.max(Math.round(lines / 10), 10);
-			
-			for(int line = 0; line < lines; line += increment) {
-				int length = increment;
-				if(line + increment > lines) {
-					length = lines - line;
-				}
-				
-				try {
-					int offset = document.getLineOffset(line);
-					int end = document.getLineOffset(line + length);
-					length = end - offset;
-					Position p = new Position(offset, length);
-					document.addPosition(SEGMENTS, p);
-					mContent.add(new Segment(MJEditorMessages.format("OutlinePage.segment.title_pattern", offset), p));
-				} catch(BadPositionCategoryException x) {
-					
-				} catch(BadLocationException x) {
-					
-				}
-			}
-		}
-		
-		@Override
-		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-			if(oldInput != null) {
-				IDocument document = mDocumentProvider.getDocument(oldInput);
-				if(document != null) {
-					try {
-						document.removePositionCategory(SEGMENTS);
-					} catch(BadPositionCategoryException x) {
-						
-					}
-					document.removePositionUpdater(mPositionUpdater);
-				}
-			}
-			
-			mContent.clear();
-			
-			if(newInput != null) {
-				IDocument document = mDocumentProvider.getDocument(newInput);
-				if(document != null) {
-					document.addPositionCategory(SEGMENTS);
-					document.addPositionUpdater(mPositionUpdater);
-					
-					parse(document);
-				}
+		protected void parse(IDocument doc) {
+			try {
+				MicroJavaLexer lex = new MicroJavaLexer(new ANTLRInputStream(doc.get()));
+				MicroJavaParser parser = new MicroJavaParser(new BufferedTokenStream(lex));
+				mRoot = parser.prog();
+			} catch(RecognitionException ex) {
+				ex.printStackTrace();
+				mRoot = null;
 			}
 		}
 		
 		@Override
 		public void dispose() {
-			if(mContent != null) {
-				mContent.clear();
-				mContent = null;
+			mRoot = null;
+		}
+		
+		@Override
+		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+			if(oldInput != null) {
+				IDocument doc = mDocumentProvider.getDocument(oldInput);
+				if(doc != null) {
+					try {
+						doc.removePositionCategory(ELEMENTS);
+					} catch(BadPositionCategoryException ex) {
+						
+					}
+					doc.removePositionUpdater(mPositionUpdater);
+				}
+			}
+			
+			mRoot = null;
+			
+			if(newInput != null) {
+				IDocument doc = mDocumentProvider.getDocument(newInput);
+				if(doc != null) {
+					doc.addPositionCategory(ELEMENTS);
+					doc.addPositionUpdater(mPositionUpdater);
+					parse(doc);
+				}
 			}
 		}
 		
 		@Override
-		public Object[] getElements(Object element) {
-			return mContent.toArray();
+		public Object[] getElements(Object input) {
+			if(mRoot == null) {
+				return new Object[] { "Parser error." };
+			}
+			return getChildren(mRoot);
 		}
 		
 		@Override
-		public boolean hasChildren(Object element) {
-			return element == mInput;
+		public Object[] getChildren(Object parent) {
+			List<Object> elems = new ArrayList<>();
+			if(parent instanceof ProgContext) {
+				ProgContext prog = (ProgContext)parent;
+				elems.add(prog.Ident());
+				elems.addAll(prog.classDecl());
+				elems.add(prog.constDecl());
+				elems.addAll(prog.varDecl());
+				elems.addAll(prog.methodDecl());
+			} else if(parent instanceof ClassDeclContext) {
+				ClassDeclContext clazz = (ClassDeclContext)parent;
+				elems.addAll(clazz.varDecl());
+			} else if(parent instanceof MethodDeclContext) {
+				MethodDeclContext method = (MethodDeclContext)parent;
+				elems.addAll(method.varDecl());
+			}
+			return elems.toArray();
 		}
 		
 		@Override
 		public Object getParent(Object element) {
-			if(element instanceof Segment) {
-				return mInput;
+			if(element instanceof Tree) {
+				return ((Tree)element).getParent();
 			}
 			return null;
 		}
 		
 		@Override
-		public Object[] getChildren(Object element) {
-			if(element == mInput) {
-				return mContent.toArray();
-			}
-			return new Object[0];
+		public boolean hasChildren(Object element) {
+			// TODO optimize
+			return getChildren(element).length > 0;
 		}
 	}
 	
@@ -159,8 +142,16 @@ public class MJContentOutlinePage extends ContentOutlinePage
 		super.createControl(parent);
 		
 		TreeViewer viewer = getTreeViewer();
-		viewer.setContentProvider(new ContentProvider());
-		viewer.setLabelProvider(new LabelProvider());
+		viewer.setContentProvider(new ChildrenProvider());
+		viewer.setLabelProvider(new LabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if(element == null) {
+					return "null";
+				}
+				return element.getClass().getSimpleName() + ": " + element.toString();
+			}
+		});
 		viewer.addSelectionChangedListener(this);
 		
 		if(mInput != null) {
@@ -176,14 +167,7 @@ public class MJContentOutlinePage extends ContentOutlinePage
 		if(selection.isEmpty()) {
 			mTextEditor.resetHighlightRange();
 		} else {
-			Segment segment = (Segment)((IStructuredSelection)selection).getFirstElement();
-			int start = segment.position.getOffset();
-			int length = segment.position.getLength();
-			try {
-				mTextEditor.setHighlightRange(start, length, true);
-			} catch(IllegalArgumentException x) {
-				mTextEditor.resetHighlightRange();
-			}
+			// TODO handle selection event
 		}
 	}
 	
