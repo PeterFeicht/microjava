@@ -124,4 +124,4 @@ fragment
 EscapeSeq  : '\\' [rn'\\] ;
 
 WS         : [ \t\r\n]+ -> skip ;
-Comment   : '/*' ( Comment | '*' ~[/]? | ~[*] )* '*/' -> skip ;
+Comment   : '/*' ( Comment | '*' ~[/]? | ~[*] )*? '*/' -> skip ;
