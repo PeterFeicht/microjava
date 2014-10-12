@@ -35,7 +35,7 @@ public class MJContentOutlinePage extends ContentOutlinePage
 	{
 		protected static final String ELEMENTS = "__microjava_elements";
 		protected IPositionUpdater mPositionUpdater = new DefaultPositionUpdater(ELEMENTS);
-		protected Object mRoot = null;
+		protected ProgContext mRoot = null;
 		
 		protected void parse(IDocument doc) {
 			try {
@@ -84,20 +84,20 @@ public class MJContentOutlinePage extends ContentOutlinePage
 			if(mRoot == null) {
 				return new Object[] { "Parser error." };
 			}
-			return getChildren(mRoot);
+			
+			List<Object> elems = new ArrayList<>();
+			elems.add(mRoot);
+			elems.addAll(mRoot.classDecl());
+			elems.add(mRoot.constDecl());
+			elems.addAll(mRoot.varDecl());
+			elems.addAll(mRoot.methodDecl());
+			return elems.toArray();
 		}
 		
 		@Override
 		public Object[] getChildren(Object parent) {
 			List<Object> elems = new ArrayList<>();
-			if(parent instanceof ProgContext) {
-				ProgContext prog = (ProgContext)parent;
-				elems.add(prog.Ident());
-				elems.addAll(prog.classDecl());
-				elems.add(prog.constDecl());
-				elems.addAll(prog.varDecl());
-				elems.addAll(prog.methodDecl());
-			} else if(parent instanceof ClassDeclContext) {
+			if(parent instanceof ClassDeclContext) {
 				ClassDeclContext clazz = (ClassDeclContext)parent;
 				elems.addAll(clazz.varDecl());
 			} else if(parent instanceof MethodDeclContext) {

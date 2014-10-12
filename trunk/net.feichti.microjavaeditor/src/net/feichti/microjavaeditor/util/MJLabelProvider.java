@@ -4,10 +4,10 @@ import net.feichti.microjavaeditor.MicroJavaEditorPlugin;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ClassDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ConstDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
 
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
@@ -99,9 +99,9 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 			}
 			key = MicroJavaEditorPlugin.IMG_METHOD;
 			
-		} else if(element instanceof TerminalNode) {
-			// The sole terminal node in the list should be the program name
+		} else if(element instanceof ProgContext) {
 			key = MicroJavaEditorPlugin.IMG_PROGRAM;
+			
 		}
 		
 		return (key != null ? MicroJavaEditorPlugin.getDefault().getImage(key) : null);
