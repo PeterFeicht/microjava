@@ -12,7 +12,6 @@ import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.TypeContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
 
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
@@ -78,16 +77,10 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 			name = clazz.Ident().getText();
 			type = "";
 			
-		} else if(element instanceof VarDeclContext) {
-			VarDeclContext var = (VarDeclContext)element;
-			Iterator<TerminalNode> it = var.Ident().iterator();
-			StringBuilder sb = new StringBuilder();
-			sb.append(it.next().getText());
-			while(it.hasNext()) {
-				sb.append(", ").append(it.next().getText());
-			}
-			name = sb.toString();
-			type = var.type().getText();
+		} else if(element instanceof VarDeclWrapper) {
+			VarDeclWrapper var = (VarDeclWrapper)element;
+			name = var.getIdent().getText();
+			type = var.getType().getText();
 			
 		} else if(element instanceof ConstDeclContext) {
 			ConstDeclContext con = (ConstDeclContext)element;
@@ -145,8 +138,8 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 		if(element instanceof ClassDeclContext) {
 			key = MicroJavaEditorPlugin.IMG_CLASS;
 			
-		} else if(element instanceof VarDeclContext) {
-			VarDeclContext varDecl = (VarDeclContext)element;
+		} else if(element instanceof VarDeclWrapper) {
+			VarDeclContext varDecl = ((VarDeclWrapper)element).getContext();
 			if(varDecl.parent instanceof MethodDeclContext) {
 				key = MicroJavaEditorPlugin.IMG_LOCAL;
 			} else if(varDecl.parent instanceof ClassDeclContext) {

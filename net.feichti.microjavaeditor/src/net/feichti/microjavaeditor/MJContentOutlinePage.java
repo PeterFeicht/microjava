@@ -8,7 +8,9 @@ import net.feichti.microjavaeditor.antlr4.MicroJavaParser;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ClassDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
 import net.feichti.microjavaeditor.util.MJLabelProvider;
+import net.feichti.microjavaeditor.util.VarDeclWrapper;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -89,7 +91,7 @@ public class MJContentOutlinePage extends ContentOutlinePage
 			elems.add(mRoot);
 			elems.addAll(mRoot.classDecl());
 			elems.addAll(mRoot.constDecl());
-			elems.addAll(mRoot.varDecl());
+			addVarDecls(elems, mRoot.varDecl());
 			elems.addAll(mRoot.methodDecl());
 			return elems.toArray();
 		}
@@ -99,12 +101,23 @@ public class MJContentOutlinePage extends ContentOutlinePage
 			List<Object> elems = new ArrayList<>();
 			if(parent instanceof ClassDeclContext) {
 				ClassDeclContext clazz = (ClassDeclContext)parent;
-				elems.addAll(clazz.varDecl());
+				addVarDecls(elems, clazz.varDecl());
+				
 			} else if(parent instanceof MethodDeclContext) {
 				MethodDeclContext method = (MethodDeclContext)parent;
-				elems.addAll(method.varDecl());
+				addVarDecls(elems, method.varDecl());
+				
 			}
 			return elems.toArray();
+		}
+		
+		private void addVarDecls(List<Object> target, List<VarDeclContext> varDecls) {
+			for(VarDeclContext decl : varDecls) {
+				int num = decl.Ident().size();
+				for(int j = 0; j < num; j++) {
+					target.add(new VarDeclWrapper(decl, j));
+				}
+			}
 		}
 		
 		@Override
