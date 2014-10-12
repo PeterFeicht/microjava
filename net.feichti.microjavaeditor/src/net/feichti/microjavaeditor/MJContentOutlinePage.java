@@ -1,6 +1,7 @@
 package net.feichti.microjavaeditor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import net.feichti.microjavaeditor.antlr4.MicroJavaLexer;
@@ -87,10 +88,10 @@ public class MJContentOutlinePage extends ContentOutlinePage
 			
 			List<Object> elems = new ArrayList<>();
 			elems.add(mRoot);
-			elems.addAll(mRoot.classDecl());
-			elems.add(mRoot.constDecl());
-			elems.addAll(mRoot.varDecl());
-			elems.addAll(mRoot.methodDecl());
+			addElements(elems, mRoot.classDecl());
+			addElements(elems, mRoot.constDecl());
+			addElements(elems, mRoot.varDecl());
+			addElements(elems, mRoot.methodDecl());
 			return elems.toArray();
 		}
 		
@@ -99,12 +100,29 @@ public class MJContentOutlinePage extends ContentOutlinePage
 			List<Object> elems = new ArrayList<>();
 			if(parent instanceof ClassDeclContext) {
 				ClassDeclContext clazz = (ClassDeclContext)parent;
-				elems.addAll(clazz.varDecl());
+				addElements(elems, clazz.varDecl());
 			} else if(parent instanceof MethodDeclContext) {
 				MethodDeclContext method = (MethodDeclContext)parent;
-				elems.addAll(method.varDecl());
+				addElements(elems, method.varDecl());
 			}
 			return elems.toArray();
+		}
+		
+		/**
+		 * Adds elements to a list while flattening possible sublists.
+		 * 
+		 * @param target The target list
+		 * @param source The source list consisting of single elements and lists for which all elements are
+		 *            added
+		 */
+		private void addElements(List<Object> target, Collection<?> source) {
+			for(Object o : source) {
+				if(o instanceof Collection<?>) {
+					addElements(target, (Collection<?>)o);
+				} else {
+					target.add(o);
+				}
+			}
 		}
 		
 		@Override
