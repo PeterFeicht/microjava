@@ -12,7 +12,7 @@ import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BufferedTokenStream;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
@@ -44,7 +44,8 @@ public class MJFileModel implements ITreeContentProvider
 	private void parse(IDocument doc) {
 		try {
 			MicroJavaLexer lex = new MicroJavaLexer(new ANTLRInputStream(doc.get()));
-			mParser = new MicroJavaParser(new BufferedTokenStream(lex));
+			CommonTokenStream tokens = new CommonTokenStream(lex);
+			mParser = new MicroJavaParser(tokens);
 			mRoot = mParser.prog();
 			
 			System.out.println("parse finished");

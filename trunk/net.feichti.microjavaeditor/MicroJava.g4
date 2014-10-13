@@ -123,5 +123,5 @@ SingleChar : ~['\\] ;
 fragment
 EscapeSeq  : '\\' [rn'\\] ;
 
-WS         : [ \t\r\n]+ -> skip ;
-Comment   : '/*' ( Comment | '*' ~[/]? | ~[*] )*? '*/' -> skip ;
+WS         : [ \t\r\n]+ -> channel(HIDDEN) ;
+Comment   : '/*' ( Comment | '*' ~[/]? | ~[*] )*? '*/' -> channel(HIDDEN) ;
