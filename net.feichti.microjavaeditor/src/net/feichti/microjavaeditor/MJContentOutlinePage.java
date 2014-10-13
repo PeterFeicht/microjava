@@ -6,6 +6,7 @@ import java.util.List;
 import net.feichti.microjavaeditor.antlr4.MicroJavaLexer;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ClassDeclContext;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ConstDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
@@ -15,13 +16,17 @@ import net.feichti.microjavaeditor.util.VarDeclWrapper;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.DefaultPositionUpdater;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IPositionUpdater;
-import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -168,11 +173,17 @@ public class MJContentOutlinePage extends ContentOutlinePage
 	public void selectionChanged(SelectionChangedEvent event) {
 		super.selectionChanged(event);
 		
-		ISelection selection = event.getSelection();
-		if(selection.isEmpty()) {
-			mTextEditor.resetHighlightRange();
-		} else {
-			// TODO handle selection event
+		ITreeSelection selection = (ITreeSelection)event.getSelection();
+		if(!selection.isEmpty()) {
+			Object sel = selection.getFirstElement();
+			Region r = getIdentRange(sel);
+			if(r != null) {
+				mTextEditor.selectAndReveal(r.getOffset(), r.getLength());
+			}
+			r = getParentRange(sel);
+			if(r != null) {
+				mTextEditor.setHighlightRange(r.getOffset(), r.getLength(), false);
+			}
 		}
 	}
 	
@@ -197,9 +208,91 @@ public class MJContentOutlinePage extends ContentOutlinePage
 			if(control != null && !control.isDisposed()) {
 				control.setRedraw(false);
 				viewer.setInput(mInput);
-				viewer.expandAll();
+				viewer.expandToLevel(1);
 				control.setRedraw(true);
 			}
 		}
+	}
+	
+	/**
+	 * Get the source code range of the identifier for the specified object.
+	 * <p>
+	 * The object needs to be a {@link MethodDeclContext}, {@link ClassDeclContext}, {@link VarDeclWrapper},
+	 * {@link VarDeclContext}, {@link ClassDeclContext} or {@link ProgContext}.
+	 * 
+	 * @param sel The selected object
+	 * @return The identifier range, or {@code null}
+	 */
+	private static Region getIdentRange(Object sel) {
+		Token ident = null;
+		if(sel instanceof MethodDeclContext) {
+			ident = ((MethodDeclContext)sel).Ident().getSymbol();
+			
+		} else if(sel instanceof ClassDeclContext) {
+			ident = ((ClassDeclContext)sel).Ident().getSymbol();
+			
+		} else if(sel instanceof VarDeclWrapper) {
+			ident = ((VarDeclWrapper)sel).getIdent().getSymbol();
+			
+		} else if(sel instanceof ConstDeclContext) {
+			ident = ((ConstDeclContext)sel).Ident().getSymbol();
+			
+		} else if(sel instanceof VarDeclContext) {
+			VarDeclContext var = (VarDeclContext)sel;
+			List<TerminalNode> all = var.Ident();
+			int start = all.get(0).getSymbol().getStartIndex();
+			int stop = all.get(all.size() - 1).getSymbol().getStopIndex();
+			return new Region(start, stop - start);
+			
+		} else if(sel instanceof ProgContext) {
+			ident = ((ProgContext)sel).Ident().getSymbol();
+			
+		}
+		
+		if(ident != null) {
+			return new Region(ident.getStartIndex(), ident.getText().length());
+		}
+		return null;
+	}
+	
+	/**
+	 * Get the source code range of the selected element's parent.
+	 * <p>
+	 * A parent in this context is an element that spans multiple lines like class or method definitions or a
+	 * program.
+	 * 
+	 * @param sel The selected object
+	 * @return The parent range, or {@code null}
+	 */
+	private static Region getParentRange(Object sel) {
+		ParseTree parent = null;
+		
+		if(sel instanceof ParseTree) {
+			parent = (ParseTree)sel;
+		} else if(sel instanceof VarDeclWrapper) {
+			parent = ((VarDeclWrapper)sel).getContext();
+		}
+		
+		while(!(parent instanceof MethodDeclContext ||
+				parent instanceof ClassDeclContext ||
+				parent instanceof ProgContext) && parent != null) {
+			parent = parent.getParent();
+		}
+		
+		if(parent != null) {
+			ParseTree start = parent.getChild(0);
+			ParseTree stop = parent.getChild(parent.getChildCount() - 1);
+			while(!(start instanceof TerminalNode)) {
+				start = start.getChild(0);
+			}
+			while(!(stop instanceof TerminalNode)) {
+				stop = stop.getChild(stop.getChildCount() - 1);
+			}
+			
+			int startIndex = ((TerminalNode)start).getSymbol().getStartIndex();
+			int stopIndex = ((TerminalNode)stop).getSymbol().getStopIndex();
+			return new Region(startIndex, stopIndex - startIndex);
+		}
+		return null;
 	}
 }
