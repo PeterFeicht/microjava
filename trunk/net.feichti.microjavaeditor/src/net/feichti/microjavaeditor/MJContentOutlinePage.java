@@ -237,13 +237,6 @@ public class MJContentOutlinePage extends ContentOutlinePage
 		} else if(sel instanceof ConstDeclContext) {
 			ident = ((ConstDeclContext)sel).Ident().getSymbol();
 			
-		} else if(sel instanceof VarDeclContext) {
-			VarDeclContext var = (VarDeclContext)sel;
-			List<TerminalNode> all = var.Ident();
-			int start = all.get(0).getSymbol().getStartIndex();
-			int stop = all.get(all.size() - 1).getSymbol().getStopIndex();
-			return new Region(start, stop - start);
-			
 		} else if(sel instanceof ProgContext) {
 			ident = ((ProgContext)sel).Ident().getSymbol();
 			
