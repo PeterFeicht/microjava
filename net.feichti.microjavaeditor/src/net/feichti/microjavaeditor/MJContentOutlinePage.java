@@ -251,25 +251,19 @@ public class MJContentOutlinePage extends ContentOutlinePage
 	/**
 	 * Get the source code range of the selected element's parent.
 	 * <p>
-	 * A parent in this context is an element that spans multiple lines like class or method definitions or a
-	 * program.
+	 * A parent in this context is an element in the outline view like a class or method definition, variable
+	 * declaration or a program.
 	 * 
 	 * @param sel The selected object
 	 * @return The parent range, or {@code null}
+	 * @see #getContainer(ParseTree)
 	 */
 	private static Region getParentRange(Object sel) {
 		ParseTree parent = null;
-		
 		if(sel instanceof ParseTree) {
-			parent = (ParseTree)sel;
+			parent = getContainer((ParseTree)sel);
 		} else if(sel instanceof VarDeclWrapper) {
-			parent = ((VarDeclWrapper)sel).getContext();
-		}
-		
-		while(!(parent instanceof MethodDeclContext ||
-				parent instanceof ClassDeclContext ||
-				parent instanceof ProgContext) && parent != null) {
-			parent = parent.getParent();
+			parent = getContainer(((VarDeclWrapper)sel).getContext());
 		}
 		
 		if(parent != null) {
@@ -287,5 +281,25 @@ public class MJContentOutlinePage extends ContentOutlinePage
 			return new Region(startIndex, stopIndex - startIndex);
 		}
 		return null;
+	}
+	
+	/**
+	 * Get the container of the specified element.
+	 * <p>
+	 * A container is an element like a class or method definition, variable declaration or a program.
+	 * 
+	 * @param p The element
+	 * @return The container, or {@code null} if none was found
+	 */
+	private static ParseTree getContainer(ParseTree p) {
+		ParseTree ret = p;
+		while(!(ret instanceof MethodDeclContext ||
+				ret instanceof ClassDeclContext ||
+				ret instanceof VarDeclContext ||
+				ret instanceof ConstDeclContext ||
+				ret instanceof ProgContext) && ret != null) {
+			ret = ret.getParent();
+		}
+		return ret;
 	}
 }
