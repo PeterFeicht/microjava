@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import net.feichti.microjavaeditor.MJContentOutlinePage;
 import net.feichti.microjavaeditor.antlr4.MicroJavaLexer;
@@ -16,9 +17,12 @@ import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
 
+import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -45,8 +49,49 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
  */
 public class MJFileModel implements ITreeContentProvider
 {
+	/**
+	 * Represents a single syntax error reported by the parser.
+	 * 
+	 * @author Peter
+	 */
+	public static class SyntaxError
+	{
+		public final int line;
+		public final int col;
+		public final String message;
+		public final Object offendingSymbol;
+		
+		public SyntaxError(int line, int col, String message, Object offendingSymbol) {
+			this.line = line;
+			this.col = col;
+			this.message = message;
+			this.offendingSymbol = offendingSymbol;
+		}
+	}
+	
+	/**
+	 * An {@link ANTLRErrorListener} that adds reported syntax errors to a list of {@link SyntaxError}.
+	 * 
+	 * @author Peter
+	 */
+	protected static class ParserErrorListener extends BaseErrorListener
+	{
+		private final List<SyntaxError> mList;
+		
+		public ParserErrorListener(List<SyntaxError> list) {
+			mList = Objects.requireNonNull(list);
+		}
+		
+		@Override
+		public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
+				String msg, RecognitionException e) {
+			mList.add(new SyntaxError(line, charPositionInLine, msg, offendingSymbol));
+		}
+	}
+	
 	public static final String ELEMENTS = "__microjava_elements";
 	
+	private final List<SyntaxError> mSyntaxErrors = new LinkedList<>();
 	private final IPositionUpdater mPositionUpdater;
 	private final IDocumentProvider mDocumentProvider;
 	
@@ -77,7 +122,11 @@ public class MJFileModel implements ITreeContentProvider
 			MicroJavaLexer lex = new MicroJavaLexer(new ANTLRInputStream(doc.get()));
 			CommonTokenStream tokens = new CommonTokenStream(lex);
 			mParser = new MicroJavaParser(tokens);
-			// TODO replace ConsoleErrorListener
+			// We don't want syntax errors printed to the console, so remove the default ConsoleErrorListener
+			mParser.removeErrorListeners();
+			mParser.addErrorListener(new ParserErrorListener(mSyntaxErrors));
+			
+			// Parse!
 			mRoot = mParser.prog();
 			
 			int numTokens = tokens.getNumberOfOnChannelTokens();
@@ -126,6 +175,7 @@ public class MJFileModel implements ITreeContentProvider
 		mParser = null;
 		mDocument = null;
 		mTokens = null;
+		mSyntaxErrors.clear();
 		
 		if(newInput != null) {
 			mDocument = mDocumentProvider.getDocument(newInput);
@@ -230,6 +280,13 @@ public class MJFileModel implements ITreeContentProvider
 		return mDocument;
 	}
 	
+	/**
+	 * Get the list of syntax errors encountered during parsing.
+	 */
+	public List<SyntaxError> getSyntaxErrors() {
+		return mSyntaxErrors;
+	}
+
 	/**
 	 * Get the {@link Token}s that are nearest to the specified offset:
 	 * <ul>
