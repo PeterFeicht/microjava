@@ -1,5 +1,6 @@
 package net.feichti.microjavaeditor;
 
+import java.text.MessageFormat;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
@@ -20,7 +21,7 @@ public class MJEditorMessages
 	public static String format(String key, Object... args) {
 		try {
 			String val = sResourceBundle.getString(key);
-			return String.format(val, args);
+			return MessageFormat.format(val, args);
 		} catch(MissingResourceException ex) {
 			return "!" + key + "!";
 		}
