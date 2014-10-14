@@ -5,12 +5,15 @@
    <extension
          point="org.eclipse.ui.editors">
       <editor
-            name="MicroJava Editor"
-            extensions="mj"
+            name="%editorName"
             icon="icons/microjava.gif"
             contributorClass="net.feichti.microjavaeditor.MJActionContributor"
             class="net.feichti.microjavaeditor.MJEditor"
-            id="net.feichti.microjavaeditor.MJEditor">
+            id="net.feichti.microjavaeditor.MJEditor"
+            default="true">
+         <contentTypeBinding
+               contentTypeId="net.feichti.microjavaeditor.microjavaSource">
+         </contentTypeBinding>
       </editor>
    </extension>
    <extension
@@ -18,8 +21,18 @@
          point="org.eclipse.core.filebuffers.documentSetup">
       <participant
             class="net.feichti.microjavaeditor.MJDocumentSetupParticipant"
-            extensions="mj">
+            contentTypeId="net.feichti.microjavaeditor.microjavaSource">
       </participant>
+   </extension>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="mj"
+            id="net.feichti.microjavaeditor.microjavaSource"
+            name="%microjavaSourceName"
+            priority="high">
+      </content-type>
    </extension>
    <extension
          point="org.eclipse.ui.preferencePages">
