@@ -53,13 +53,16 @@ public class MJContentOutlinePage extends ContentOutlinePage
 		ITreeSelection selection = (ITreeSelection)event.getSelection();
 		if(!selection.isEmpty()) {
 			Object sel = selection.getFirstElement();
-			Region r = MJFileModel.getIdentRange(sel);
-			if(r != null) {
-				mTextEditor.selectAndReveal(r.getOffset(), r.getLength());
+			Region ident = MJFileModel.getIdentRange(sel);
+			Region parent = MJFileModel.getParentRange(sel);
+			if(ident == null) {
+				ident = parent;
 			}
-			r = MJFileModel.getParentRange(sel);
-			if(r != null) {
-				mTextEditor.setHighlightRange(r.getOffset(), r.getLength(), false);
+			if(ident != null) {
+				mTextEditor.selectAndReveal(ident.getOffset(), ident.getLength());
+			}
+			if(parent != null) {
+				mTextEditor.setHighlightRange(parent.getOffset(), parent.getLength(), false);
 			}
 		}
 	}

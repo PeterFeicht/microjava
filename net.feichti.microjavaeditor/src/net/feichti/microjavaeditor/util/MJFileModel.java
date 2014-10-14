@@ -3,6 +3,8 @@ package net.feichti.microjavaeditor.util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 
 import net.feichti.microjavaeditor.MJContentOutlinePage;
@@ -339,41 +341,62 @@ public class MJFileModel implements ITreeContentProvider
 		}
 		
 		if(parent != null) {
-			int startIndex = getFirstLeaf(parent).getSymbol().getStartIndex();
-			int stopIndex = getLastLeaf(parent).getSymbol().getStopIndex();
-			return new Region(startIndex, stopIndex - startIndex);
+			TerminalNode start = getLeftLeaf(parent);
+			if(start == null) {
+				return null;
+			}
+			// If start is not null, stop won't be either
+			TerminalNode stop = getRightLeaf(parent);
+			int startIndex = start.getSymbol().getStartIndex();
+			int stopIndex = stop.getSymbol().getStopIndex();
+			return new Region(startIndex, stopIndex - startIndex + 1);
 		}
 		return null;
 	}
 	
 	/**
-	 * Get the first leaf node for the specified token, assuming that leaf nodes are always
-	 * {@link TerminalNode}s.
+	 * Gets the leftmost terminal node in the specified tree.
 	 * 
-	 * @param parent The parent
-	 * @return The first leaf node
+	 * @param tree The tree to search
+	 * @return The leftmost terminal node, or {@code null} if there are none
 	 */
-	private static TerminalNode getFirstLeaf(ParseTree parent) {
-		ParseTree start = parent.getChild(0);
-		while(!(start instanceof TerminalNode)) {
-			start = start.getChild(0);
+	private static TerminalNode getLeftLeaf(ParseTree tree) {
+		Deque<ParseTree> stack = new LinkedList<>();
+		stack.addLast(tree);
+		while(!stack.isEmpty()) {
+			ParseTree next = stack.removeLast();
+			if(next instanceof TerminalNode) {
+				return (TerminalNode)next;
+			}
+			
+			for(int j = next.getChildCount() - 1; j >= 0; j--) {
+				stack.addLast(next.getChild(j));
+			}
 		}
-		return (TerminalNode)start;
+		return null;
 	}
 	
 	/**
-	 * Get the last leaf node for the specified token, assuming that leaf nodes are always
-	 * {@link TerminalNode}s.
+	 * Gets the rightmost terminal node in the specified tree.
 	 * 
-	 * @param parent The parent
-	 * @return The last leaf node
+	 * @param tree The tree to search
+	 * @return The rightmost terminal node, or {@code null} if there are none
 	 */
-	private static TerminalNode getLastLeaf(ParseTree parent) {
-		ParseTree stop = parent.getChild(parent.getChildCount() - 1);
-		while(!(stop instanceof TerminalNode) && stop != null) {
-			stop = stop.getChild(stop.getChildCount() - 1);
+	private static TerminalNode getRightLeaf(ParseTree tree) {
+		Deque<ParseTree> stack = new LinkedList<>();
+		stack.addLast(tree);
+		while(!stack.isEmpty()) {
+			ParseTree next = stack.removeLast();
+			if(next instanceof TerminalNode) {
+				return (TerminalNode)next;
+			}
+			
+			final int childCount = next.getChildCount();
+			for(int j = 0; j < childCount; j++) {
+				stack.addLast(next.getChild(j));
+			}
 		}
-		return (TerminalNode)stop;
+		return null;
 	}
 	
 	/**
