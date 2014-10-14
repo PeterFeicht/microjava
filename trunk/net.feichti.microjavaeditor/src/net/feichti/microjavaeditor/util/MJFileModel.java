@@ -1,6 +1,8 @@
 package net.feichti.microjavaeditor.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import net.feichti.microjavaeditor.MJContentOutlinePage;
@@ -46,8 +48,13 @@ public class MJFileModel implements ITreeContentProvider
 	private final IPositionUpdater mPositionUpdater;
 	private final IDocumentProvider mDocumentProvider;
 	
+	/** The parser used to parse the current document, kept even on error. */
 	private MicroJavaParser mParser = null;
+	/** The context on successful parse, {@code null} otherwise. */
 	private ProgContext mRoot = null;
+	/** The list of tokens for position search on successful parse, {@code null} otherwise. */
+	private Token[] mTokens;
+	/** The current document. */
 	private IDocument mDocument = null;
 	
 	/**
@@ -68,13 +75,30 @@ public class MJFileModel implements ITreeContentProvider
 			MicroJavaLexer lex = new MicroJavaLexer(new ANTLRInputStream(doc.get()));
 			CommonTokenStream tokens = new CommonTokenStream(lex);
 			mParser = new MicroJavaParser(tokens);
+			// TODO replace ConsoleErrorListener
 			mRoot = mParser.prog();
+			
+			int numTokens = tokens.getNumberOfOnChannelTokens();
+			if(numTokens > 1) {
+				List<Token> tmp = new ArrayList<>(numTokens + 1);
+				for(Token t : tokens.getTokens()) {
+					if(t.getChannel() == Token.DEFAULT_CHANNEL) {
+						tmp.add(t);
+					}
+				}
+				mTokens = tmp.toArray(new Token[0]);
+			} else {
+				// We need two tokens for position search, a program with one token makes no sense anyway
+				mRoot = null;
+				mTokens = null;
+			}
 			
 			System.out.println("parse finished");
 		} catch(RecognitionException ex) {
 			System.out.println("parse failed:");
 			ex.printStackTrace();
 			mRoot = null;
+			mTokens = null;
 		}
 	}
 	
@@ -99,6 +123,7 @@ public class MJFileModel implements ITreeContentProvider
 		mRoot = null;
 		mParser = null;
 		mDocument = null;
+		mTokens = null;
 		
 		if(newInput != null) {
 			mDocument = mDocumentProvider.getDocument(newInput);
@@ -204,6 +229,63 @@ public class MJFileModel implements ITreeContentProvider
 	}
 	
 	/**
+	 * Get the {@link Token}s that are nearest to the specified offset:
+	 * <ul>
+	 * <li>If the offset is inside a single token, then the list contains this token.</li>
+	 * <li>If the offset is between two tokens, the list contains both tokens.</li>
+	 * <li>If the offset is at the beginning of a token, the list contains this token and the one before it,
+	 * if any.</li>
+	 * <li>If the offset is at the end of a token, the list contains this token and the one after it, if any.</li>
+	 * </ul>
+	 * 
+	 * @param offset The 0-based offset in the document
+	 * @return A list of nodes that are nearest to the offset
+	 */
+	public List<Token> getTokensForOffset(final int offset) {
+		List<Token> ret = new ArrayList<>(2);
+		
+		int idx = Arrays.binarySearch(mTokens, null, new Comparator<Token>() {
+			@Override
+			public int compare(Token o1, Token o2) {
+				if(o1 != null) {
+					if(o1.getStartIndex() > offset) {
+						return 1;
+					} else if(o1.getStopIndex() < offset) {
+						return -1;
+					}
+				} else {
+					if(o2.getStopIndex() < offset) {
+						return 1;
+					} else if(o2.getStartIndex() > offset) {
+						return -1;
+					}
+				}
+				return 0;
+			}
+		});
+		
+		if(idx <= 0) {
+			ret.add(mTokens[0]);
+			if(mTokens[0].getStopIndex() <= offset) {
+				ret.add(mTokens[1]);
+			}
+		}
+		if(idx == mTokens.length) {
+			ret.add(mTokens[mTokens.length - 1]);
+		} else {
+			Token found = mTokens[idx];
+			ret.add(found);
+			if(found.getStartIndex() == offset) {
+				ret.add(mTokens[idx - 1]);
+			} else if(found.getStopIndex() == offset && (idx + 1 < mTokens.length)) {
+				ret.add(mTokens[idx + 1]);
+			}
+		}
+		
+		return ret;
+	}
+	
+	/**
 	 * Get the source code range of the identifier for the specified object.
 	 * <p>
 	 * The object needs to be a {@link MethodDeclContext}, {@link ClassDeclContext}, {@link VarDeclWrapper},
@@ -257,20 +339,41 @@ public class MJFileModel implements ITreeContentProvider
 		}
 		
 		if(parent != null) {
-			ParseTree start = parent.getChild(0);
-			ParseTree stop = parent.getChild(parent.getChildCount() - 1);
-			while(!(start instanceof TerminalNode)) {
-				start = start.getChild(0);
-			}
-			while(!(stop instanceof TerminalNode)) {
-				stop = stop.getChild(stop.getChildCount() - 1);
-			}
-			
-			int startIndex = ((TerminalNode)start).getSymbol().getStartIndex();
-			int stopIndex = ((TerminalNode)stop).getSymbol().getStopIndex();
+			int startIndex = getFirstLeaf(parent).getSymbol().getStartIndex();
+			int stopIndex = getLastLeaf(parent).getSymbol().getStopIndex();
 			return new Region(startIndex, stopIndex - startIndex);
 		}
 		return null;
+	}
+	
+	/**
+	 * Get the first leaf node for the specified token, assuming that leaf nodes are always
+	 * {@link TerminalNode}s.
+	 * 
+	 * @param parent The parent
+	 * @return The first leaf node
+	 */
+	private static TerminalNode getFirstLeaf(ParseTree parent) {
+		ParseTree start = parent.getChild(0);
+		while(!(start instanceof TerminalNode)) {
+			start = start.getChild(0);
+		}
+		return (TerminalNode)start;
+	}
+	
+	/**
+	 * Get the last leaf node for the specified token, assuming that leaf nodes are always
+	 * {@link TerminalNode}s.
+	 * 
+	 * @param parent The parent
+	 * @return The last leaf node
+	 */
+	private static TerminalNode getLastLeaf(ParseTree parent) {
+		ParseTree stop = parent.getChild(parent.getChildCount() - 1);
+		while(!(stop instanceof TerminalNode) && stop != null) {
+			stop = stop.getChild(stop.getChildCount() - 1);
+		}
+		return (TerminalNode)stop;
 	}
 	
 	/**
