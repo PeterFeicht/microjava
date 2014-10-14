@@ -90,4 +90,25 @@ public class MJContentOutlinePage extends ContentOutlinePage
 			}
 		}
 	}
+	
+	/**
+	 * Get the document provider for this outline page.
+	 */
+	public IDocumentProvider getDocumentProvider() {
+		return mDocumentProvider;
+	}
+	
+	/**
+	 * Get the text editor for this outline page.
+	 */
+	public ITextEditor getTextEditor() {
+		return mTextEditor;
+	}
+	
+	/**
+	 * Get the file model associated with this outline page.
+	 */
+	public MJFileModel getFileModel() {
+		return mFileModel;
+	}
 }
