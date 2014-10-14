@@ -12,6 +12,7 @@ import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.TypeContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
 
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
@@ -29,6 +30,10 @@ import org.eclipse.swt.graphics.Image;
  */
 public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelProvider, IToolTipProvider
 {
+	public static final String MAIN_NAME = "main";
+	private static final String UNKNOWN = "<unknown>";
+	private static final String UNNAMED = "<unnamed>";
+	
 	private Image mConstImage;
 	private Image mMainImage;
 	
@@ -61,10 +66,6 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 	
 	@Override
 	public String getToolTipText(Object element) {
-		if(element instanceof ConstDeclContext) {
-			ConstDeclContext con = (ConstDeclContext)element;
-			return con.literal().getText();
-		}
 		return null;
 	}
 	
@@ -74,32 +75,34 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 		
 		if(element instanceof ClassDeclContext) {
 			ClassDeclContext clazz = (ClassDeclContext)element;
-			name = clazz.Ident().getText();
+			name = getText(clazz.Ident(), UNNAMED);
 			type = "";
 			
 		} else if(element instanceof VarDeclWrapper) {
 			VarDeclWrapper var = (VarDeclWrapper)element;
-			name = var.getIdent().getText();
-			type = var.getType().getText();
+			name = getText(var.getIdent(), UNNAMED);
+			type = getText(var.getType(), UNKNOWN);
 			
 		} else if(element instanceof ConstDeclContext) {
 			ConstDeclContext con = (ConstDeclContext)element;
-			name = con.Ident().getText();
-			type = con.type().getText();
+			name = getText(con.Ident(), UNNAMED);
+			type = getText(con.type(), UNKNOWN);
 			
 		} else if(element instanceof MethodDeclContext) {
 			MethodDeclContext method = (MethodDeclContext)element;
-			StringBuilder sb = new StringBuilder();
-			sb.append(method.Ident().getText()).append('(');
+			StringBuilder sb = new StringBuilder()
+					.append(getText(method.Ident(), UNNAMED))
+					.append('(');
 			
 			FormParsContext pars = method.formPars();
 			if(pars != null) {
 				Iterator<TypeContext> types = pars.type().iterator();
 				if(types.hasNext()) {
-					sb.append(types.next().getText());
+					sb.append(getText(types.next(), "??"));
 				}
 				while(types.hasNext()) {
-					sb.append(", ").append(types.next().getText());
+					sb.append(", ");
+					sb.append(getText(types.next(), "??"));
 				}
 			}
 			sb.append(')');
@@ -111,17 +114,21 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 			} else if(method.getToken(MicroJavaParser.VOID, 0) != null) {
 				type = "void";
 			} else {
-				type = "??";
+				type = UNKNOWN;
 			}
 			
 		} else if(element instanceof ProgContext) {
 			ProgContext prog = (ProgContext)element;
-			name = prog.Ident().getText();
+			name = getText(prog.Ident(), UNNAMED);
 			type = "program";
 			
+		} else if(element instanceof String) {
+			name = (String)element;
+			type = "";
+			
 		} else {
-			name = "<unknown>";
-			type = element.getClass().getSimpleName();
+			name = UNKNOWN;
+			type = element.getClass().getName();
 		}
 		
 		StyledString ret = new StyledString(name);
@@ -153,7 +160,7 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 			
 		} else if(element instanceof MethodDeclContext) {
 			MethodDeclContext method = (MethodDeclContext)element;
-			if("main".equals(method.Ident().getSymbol().getText())) {
+			if(MAIN_NAME.equals(getText(method.Ident(), null))) {
 				return mMainImage;
 			}
 			key = MicroJavaEditorPlugin.IMG_METHOD;
@@ -164,5 +171,16 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 		}
 		
 		return (key != null ? MicroJavaEditorPlugin.getDefault().getImage(key) : null);
+	}
+	
+	/**
+	 * Get the text of the specified parse tree, or a default value if {@code n} is {@code null}.
+	 * 
+	 * @param n A {@link ParseTree}, can be {@code null}
+	 * @param def The default value
+	 * @return {@link ParseTree#getText() n.getText()} if {@code n} is not {@code null}, {@code def} otherwise
+	 */
+	private static String getText(ParseTree n, String def) {
+		return (n != null ? n.getText() : def);
 	}
 }
