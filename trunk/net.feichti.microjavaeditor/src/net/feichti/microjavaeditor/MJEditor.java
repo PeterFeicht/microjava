@@ -1,21 +1,35 @@
 package net.feichti.microjavaeditor;
 
+import java.util.List;
+
+import org.antlr.v4.runtime.Token;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.ITextViewerExtension5;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ICharacterPairMatcher;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.viewers.IPostSelectionProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
-public class MJEditor extends TextEditor
+public class MJEditor extends TextEditor implements ISelectionChangedListener
 {
+	/**
+	 * The ID of this editor.
+	 */
+	public static final String ID = "net.feichti.microjavaeditor.MJEditor";
+	
+	// Preference keys
 	public final static String MATCHING_BRACKETS = "matchingBrackets";
 	public final static String HIGHLIGHT_BRACKET_AT_CARET_LOCATION = "highlightBracketAtCaretLocation";
 	public final static String ENCLOSING_BRACKETS = "enclosingBrackets";
@@ -26,12 +40,25 @@ public class MJEditor extends TextEditor
 	
 	public MJEditor() {
 		mBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '(', ')', '{', '}', '[', ']' });
+		
+		ISelectionProvider selectionProvider  = getSelectionProvider();
+		if(selectionProvider instanceof IPostSelectionProvider) {
+			((IPostSelectionProvider)selectionProvider).addPostSelectionChangedListener(this);
+		} else {
+			selectionProvider.addSelectionChangedListener(this);
+		}
 	}
 	
 	@Override
 	public void dispose() {
 		if(mOutlinePage != null) {
 			mOutlinePage.dispose();
+		}
+		ISelectionProvider selectionProvider  = getSelectionProvider();
+		if(selectionProvider instanceof IPostSelectionProvider) {
+			((IPostSelectionProvider)selectionProvider).removePostSelectionChangedListener(this);
+		} else {
+			selectionProvider.removeSelectionChangedListener(this);
 		}
 		super.dispose();
 	}
@@ -133,6 +160,17 @@ public class MJEditor extends TextEditor
 		}
 		if(!pref.contains(ENCLOSING_BRACKETS)) {
 			pref.setValue(ENCLOSING_BRACKETS, false);
+		}
+	}
+	
+	@Override
+	public void selectionChanged(SelectionChangedEvent event) {
+		ITextSelection sel = (ITextSelection)getSelectionProvider().getSelection();
+		List<Token> tokens = mOutlinePage.getFileModel().getTokensForOffset(sel.getOffset());
+		if(tokens.size() == 1) {
+			// Inside a token, highlight the container
+		} else {
+			// Between two tokens, decide which container to highlight
 		}
 	}
 }
