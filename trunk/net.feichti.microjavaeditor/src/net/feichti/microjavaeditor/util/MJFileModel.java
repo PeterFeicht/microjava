@@ -3,6 +3,7 @@ package net.feichti.microjavaeditor.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.feichti.microjavaeditor.MJContentOutlinePage;
 import net.feichti.microjavaeditor.antlr4.MicroJavaLexer;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ClassDeclContext;
@@ -28,19 +29,40 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
+/**
+ * Represents a model of a MicroJava file and is a tree content provider.
+ * <p>
+ * This class is used as the content provider for the {@link MJContentOutlinePage}, when the input is set the
+ * file is parsed and the {@link ProgContext} for the file as well as the parser can be accessed.<br>
+ * This class also provides methods to work with the generated parse tree.
+ * 
+ * @TODO Parsing errors are collected and can be accessed, e.g. for display to the user.
+ * @author Peter
+ */
 public class MJFileModel implements ITreeContentProvider
 {
 	public static final String ELEMENTS = "__microjava_elements";
+	
+	private final IPositionUpdater mPositionUpdater;
 	private final IDocumentProvider mDocumentProvider;
-	private IPositionUpdater mPositionUpdater = new DefaultPositionUpdater(ELEMENTS);
+	
 	private MicroJavaParser mParser = null;
 	private ProgContext mRoot = null;
 	private IDocument mDocument = null;
 	
+	/**
+	 * Initialize a new model with the specified content provider.
+	 * 
+	 * @param documentProvider The document provider
+	 */
 	public MJFileModel(IDocumentProvider documentProvider) {
+		mPositionUpdater = new DefaultPositionUpdater(ELEMENTS);
 		mDocumentProvider = documentProvider;
 	}
-
+	
+	/**
+	 * Parse the specified document and set {@link #mRoot} and {@link #mParser}.
+	 */
 	private void parse(IDocument doc) {
 		try {
 			MicroJavaLexer lex = new MicroJavaLexer(new ANTLRInputStream(doc.get()));
@@ -117,7 +139,7 @@ public class MJFileModel implements ITreeContentProvider
 		}
 		return elems.toArray();
 	}
-
+	
 	/**
 	 * Add {@link VarDeclWrapper}s for the specified {@link VarDeclContext}s to the list.
 	 * 
@@ -159,28 +181,28 @@ public class MJFileModel implements ITreeContentProvider
 	public IDocumentProvider getDocumentProvider() {
 		return mDocumentProvider;
 	}
-
+	
 	/**
 	 * Get the parser for the current input.
 	 */
 	public MicroJavaParser getParser() {
 		return mParser;
 	}
-
+	
 	/**
 	 * Get the {@link RuleContext} for the program of this model.
 	 */
 	public ProgContext getRoot() {
 		return mRoot;
 	}
-
+	
 	/**
 	 * Get the current document.
 	 */
 	public IDocument getDocument() {
 		return mDocument;
 	}
-
+	
 	/**
 	 * Get the source code range of the identifier for the specified object.
 	 * <p>
@@ -214,7 +236,7 @@ public class MJFileModel implements ITreeContentProvider
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Get the source code range of the selected element's parent.
 	 * <p>
@@ -249,7 +271,7 @@ public class MJFileModel implements ITreeContentProvider
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Get the container of the specified element.
 	 * <p>
