@@ -213,26 +213,27 @@ public class MJFileModel implements ITreeContentProvider
 	 * @return The identifier range, or {@code null}
 	 */
 	public static Region getIdentRange(Object sel) {
-		Token ident = null;
+		TerminalNode ident = null;
 		if(sel instanceof MethodDeclContext) {
-			ident = ((MethodDeclContext)sel).Ident().getSymbol();
+			ident = ((MethodDeclContext)sel).Ident();
 			
 		} else if(sel instanceof ClassDeclContext) {
-			ident = ((ClassDeclContext)sel).Ident().getSymbol();
+			ident = ((ClassDeclContext)sel).Ident();
 			
 		} else if(sel instanceof VarDeclWrapper) {
-			ident = ((VarDeclWrapper)sel).getIdent().getSymbol();
+			ident = ((VarDeclWrapper)sel).getIdent();
 			
 		} else if(sel instanceof ConstDeclContext) {
-			ident = ((ConstDeclContext)sel).Ident().getSymbol();
+			ident = ((ConstDeclContext)sel).Ident();
 			
 		} else if(sel instanceof ProgContext) {
-			ident = ((ProgContext)sel).Ident().getSymbol();
+			ident = ((ProgContext)sel).Ident();
 			
 		}
 		
-		if(ident != null) {
-			return new Region(ident.getStartIndex(), ident.getText().length());
+		if(ident != null && ident.getSymbol() != null) {
+			Token t = ident.getSymbol();
+			return new Region(t.getStartIndex(), t.getText().length());
 		}
 		return null;
 	}
