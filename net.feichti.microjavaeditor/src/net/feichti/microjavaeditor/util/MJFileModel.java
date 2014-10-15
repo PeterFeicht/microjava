@@ -150,7 +150,7 @@ public class MJFileModel implements ITreeContentProvider
 	/** The context on successful parse, {@code null} otherwise. */
 	private ProgContext mRoot = null;
 	/** The list of tokens for position search on successful parse, {@code null} otherwise. */
-	private Token[] mTokens;
+	private TerminalNode[] mTokens;
 	/** The current document. */
 	private IDocument mDocument = null;
 	
@@ -179,15 +179,11 @@ public class MJFileModel implements ITreeContentProvider
 			// Parse!
 			mRoot = mParser.prog();
 			
-			int numTokens = tokens.getNumberOfOnChannelTokens();
-			if(numTokens > 1) {
-				List<Token> tmp = new ArrayList<>(numTokens + 1);
-				for(Token t : tokens.getTokens()) {
-					if(t.getChannel() == Token.DEFAULT_CHANNEL) {
-						tmp.add(t);
-					}
-				}
-				mTokens = tmp.toArray(new Token[0]);
+			// Collect terminal nodes for position search
+			List<TerminalNode> tmp = collectTerminalNodes(mRoot);
+			if(tmp.size() > 1) {
+				mTokens = tmp.toArray(new TerminalNode[0]);
+				// TODO assert list is sorted
 			} else {
 				// We need two tokens for position search, a program with one token makes no sense anyway
 				mRoot = null;
@@ -336,9 +332,9 @@ public class MJFileModel implements ITreeContentProvider
 	public List<SyntaxError> getSyntaxErrors() {
 		return mSyntaxErrors;
 	}
-
+	
 	/**
-	 * Get the {@link Token}s that are nearest to the specified offset:
+	 * Get the tokens that are nearest to the specified offset:
 	 * <ul>
 	 * <li>If the offset is inside a single token, then the list contains this token.</li>
 	 * <li>If the offset is between two tokens, the list contains both tokens.</li>
@@ -348,24 +344,26 @@ public class MJFileModel implements ITreeContentProvider
 	 * </ul>
 	 * 
 	 * @param offset The 0-based offset in the document
-	 * @return A list of nodes that are nearest to the offset
+	 * @return A list of {@link TerminalNode}s that are nearest to the offset
 	 */
-	public List<Token> getTokensForOffset(final int offset) {
-		List<Token> ret = new ArrayList<>(2);
+	public List<TerminalNode> getTokensForOffset(final int offset) {
+		List<TerminalNode> ret = new ArrayList<>(2);
 		
-		int idx = Arrays.binarySearch(mTokens, null, new Comparator<Token>() {
+		int idx = Arrays.binarySearch(mTokens, null, new Comparator<TerminalNode>() {
 			@Override
-			public int compare(Token o1, Token o2) {
+			public int compare(TerminalNode o1, TerminalNode o2) {
 				if(o1 != null) {
-					if(o1.getStartIndex() > offset) {
+					Token t = o1.getSymbol();
+					if(t.getStartIndex() > offset) {
 						return 1;
-					} else if(o1.getStopIndex() < offset) {
+					} else if(t.getStopIndex() < offset) {
 						return -1;
 					}
 				} else {
-					if(o2.getStopIndex() < offset) {
+					Token t = o2.getSymbol();
+					if(t.getStopIndex() < offset) {
 						return 1;
-					} else if(o2.getStartIndex() > offset) {
+					} else if(t.getStartIndex() > offset) {
 						return -1;
 					}
 				}
@@ -375,18 +373,17 @@ public class MJFileModel implements ITreeContentProvider
 		
 		if(idx <= 0) {
 			ret.add(mTokens[0]);
-			if(mTokens[0].getStopIndex() <= offset) {
+			if(mTokens[0].getSymbol().getStopIndex() <= offset) {
 				ret.add(mTokens[1]);
 			}
-		}
-		if(idx == mTokens.length) {
+		} else if(idx == mTokens.length) {
 			ret.add(mTokens[mTokens.length - 1]);
 		} else {
-			Token found = mTokens[idx];
+			TerminalNode found = mTokens[idx];
 			ret.add(found);
-			if(found.getStartIndex() == offset) {
+			if(found.getSymbol().getStartIndex() == offset) {
 				ret.add(mTokens[idx - 1]);
-			} else if(found.getStopIndex() == offset && (idx + 1 < mTokens.length)) {
+			} else if(found.getSymbol().getStopIndex() == offset && (idx + 1 < mTokens.length)) {
 				ret.add(mTokens[idx + 1]);
 			}
 		}
@@ -504,6 +501,31 @@ public class MJFileModel implements ITreeContentProvider
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Collects all {@link TerminalNode}s in the specified tree.
+	 * 
+	 * @param tree The tree to collect terminal nodes from
+	 * @return A list of terminal nodes, from left to right (that is, in the same order the appear in the
+	 *         source code)
+	 */
+	private static List<TerminalNode> collectTerminalNodes(ParseTree tree) {
+		Deque<ParseTree> stack = new LinkedList<>();
+		List<TerminalNode> ret = new ArrayList<>();
+		stack.addLast(tree);
+		while(!stack.isEmpty()) {
+			ParseTree next = stack.removeLast();
+			if(next instanceof TerminalNode) {
+				// It is assumed that Terminal nodes don't have children
+				ret.add((TerminalNode)next);
+			} else {
+				for(int j = next.getChildCount() - 1; j >= 0; j--) {
+					stack.addLast(next.getChild(j));
+				}
+			}
+		}
+		return ret;
 	}
 	
 	/**
