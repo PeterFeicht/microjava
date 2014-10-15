@@ -15,16 +15,17 @@ formPars   : type Ident ( ',' type Ident )* ;
 type       : Ident ( '[' ']' )? ;
 
 block     : '{' statement* '}' ;
-statement : designator ( assignop expr | actPars | '++' | '--' ) ';'
-          | 'if' '(' condition ')' statement ( 'else' statement )?
-          | 'while' '(' condition ')' statement
-          | 'switch' '(' expr ')' '{' ( 'case' expr ':' statement* )* ( 'default' ':' statement* )? '}'
-          | 'break' ';'
-          | 'return' expr? ';'
-          | 'read' '(' designator ')' ';'
-          | 'print' '(' expr ( ',' Number )? ')' ';'
-          | block
-          | ';' ;
+statement : designator ( assignop expr | actPars | '++' | '--' ) ';'        # AssignStatement
+          | 'if' '(' condition ')' statement ( 'else' statement )?          # IfStatement
+          | 'while' '(' condition ')' statement                             # WhileStatement
+          | 'switch' '(' expr ')' '{' ( 'case' expr ':' statement* )* ( 'default' ':' statement* )? '}' # SwitchStatement
+          | 'break' ';'                                                     # BreakStatement
+          | 'return' expr? ';'                                              # ReturnStatement
+          | 'read' '(' designator ')' ';'                                   # ReadStatement
+          | 'print' '(' expr ( ',' Number )? ')' ';'                        # PrintStatement
+          | block                                                           # BlockStatement
+          | ';'                                                             # EmptyStatement
+          ;
 assignop  : '=' | '+=' | '-=' | '*=' | '/=' | '%=' ;
 actPars   : '(' ( expr ( ',' expr )* )? ')' ;
 
@@ -35,10 +36,11 @@ relop     : '==' | '!=' | '>' | '>=' | '<' | '<=' ;
 
 expr       : '-'? term ( addop term )* ;
 term       : factor ( mulop factor )* ;
-factor     : designator actPars?
-           | literal
-           | 'new' Ident ( '[' expr ']' )?
-           | '(' expr ')' ;
+factor     : designator actPars?                        # RefOrCall
+           | literal                                    # LiteralFactor
+           | 'new' Ident ( '[' expr ']' )?              # Constructor
+           | '(' expr ')'                               # Parantheses
+           ;
 designator : Ident ( '.' Ident | '[' expr ']' )* ;
 addop      : '+' | '-' ;
 mulop      : '*' | '/' | '%' ;
