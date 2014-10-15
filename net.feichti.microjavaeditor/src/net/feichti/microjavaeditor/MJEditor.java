@@ -2,7 +2,9 @@ package net.feichti.microjavaeditor;
 
 import java.util.List;
 
-import org.antlr.v4.runtime.Token;
+import net.feichti.microjavaeditor.util.MJFileModel;
+
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IMenuManager;
@@ -17,6 +19,7 @@ import org.eclipse.jface.viewers.IPostSelectionProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
@@ -38,10 +41,17 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 	private MJContentOutlinePage mOutlinePage;
 	private ICharacterPairMatcher mBracketMatcher;
 	
+	// TODO semantic highlighting (StyleRange)
+	
 	public MJEditor() {
 		mBracketMatcher = new DefaultCharacterPairMatcher(new char[] { '(', ')', '{', '}', '[', ']' });
+	}
+	
+	@Override
+	public void createPartControl(Composite parent) {
+		super.createPartControl(parent);
 		
-		ISelectionProvider selectionProvider  = getSelectionProvider();
+		ISelectionProvider selectionProvider = getSelectionProvider();
 		if(selectionProvider instanceof IPostSelectionProvider) {
 			((IPostSelectionProvider)selectionProvider).addPostSelectionChangedListener(this);
 		} else {
@@ -54,7 +64,7 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 		if(mOutlinePage != null) {
 			mOutlinePage.dispose();
 		}
-		ISelectionProvider selectionProvider  = getSelectionProvider();
+		ISelectionProvider selectionProvider = getSelectionProvider();
 		if(selectionProvider instanceof IPostSelectionProvider) {
 			((IPostSelectionProvider)selectionProvider).removePostSelectionChangedListener(this);
 		} else {
@@ -165,12 +175,20 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 	
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
-		ITextSelection sel = (ITextSelection)getSelectionProvider().getSelection();
-		List<Token> tokens = mOutlinePage.getFileModel().getTokensForOffset(sel.getOffset());
+		final ITextSelection sel = (ITextSelection)getSelectionProvider().getSelection();
+		List<TerminalNode> tokens = mOutlinePage.getFileModel().getTokensForOffset(sel.getOffset());
+		// TODO consider selection end to decide on highlight range
+		
+		Region range = null;
 		if(tokens.size() == 1) {
 			// Inside a token, highlight the container
+			range = MJFileModel.getParentRange(tokens.get(0));
 		} else {
 			// Between two tokens, decide which container to highlight
+			// TODO highlight when between two tokens
+		}
+		if(range != null) {
+			setHighlightRange(range.getOffset(), range.getLength(), false);
 		}
 	}
 }
