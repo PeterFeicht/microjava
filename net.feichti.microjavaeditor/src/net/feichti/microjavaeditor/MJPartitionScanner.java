@@ -2,12 +2,12 @@ package net.feichti.microjavaeditor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.IWordDetector;
-import org.eclipse.jface.text.rules.MultiLineRule;
 import org.eclipse.jface.text.rules.RuleBasedPartitionScanner;
 import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
@@ -20,7 +20,7 @@ import org.eclipse.jface.text.rules.WordRule;
  */
 public class MJPartitionScanner extends RuleBasedPartitionScanner
 {
-	public final static String MICROJAVA_COMMENT = "__microjava_multiline_comment"; //$NON-NLS-1$
+	public final static String MICROJAVA_COMMENT = "__microjava_multiline_comment";
 	public final static String[] MICROJAVA_PARTITION_TYPES = new String[] { MICROJAVA_COMMENT };
 	
 	static class EmptyCommentDetector implements IWordDetector
@@ -57,25 +57,64 @@ public class MJPartitionScanner extends RuleBasedPartitionScanner
 		}
 	}
 	
-	// TODO fix nested comments
 	static class NestedCommentRule implements IPredicateRule
 	{
+		final IToken mToken;
+		
+		public NestedCommentRule(IToken token) {
+			mToken = Objects.requireNonNull(token);
+		}
+		
 		@Override
 		public IToken evaluate(ICharacterScanner scanner) {
-			// TODO Auto-generated method stub
-			return null;
+			int c = scanner.read();
+			if(c == '/') {
+				c = scanner.read();
+				if(c == '*') {
+					consumeToEnd(scanner);
+					return mToken;
+				}
+				scanner.unread();
+			}
+			scanner.unread();
+			return Token.UNDEFINED;
 		}
 		
 		@Override
 		public IToken evaluate(ICharacterScanner scanner, boolean resume) {
-			// TODO Auto-generated method stub
-			return null;
+			if(resume) {
+				consumeToEnd(scanner);
+				return mToken;
+			}
+			return evaluate(scanner);
+		}
+		
+		public static void consumeToEnd(ICharacterScanner scanner) {
+			int level = 1;
+			int c = scanner.read();
+			
+			while(c != ICharacterScanner.EOF && level > 0) {
+				final int old = c;
+				c = scanner.read();
+				
+				if(old == '*' && c == '/') {
+					level--;
+					c = scanner.read();
+				} else if(old == '/' && c == '*') {
+					level++;
+					c = scanner.read();
+				}
+			}
+			
+			// Unclosed comments consume the whole file so we don't unread in that case
+			if(level == 0) {
+				scanner.unread();
+			}
 		}
 		
 		@Override
 		public IToken getSuccessToken() {
-			// TODO Auto-generated method stub
-			return null;
+			return mToken;
 		}
 	}
 	
@@ -93,8 +132,8 @@ public class MJPartitionScanner extends RuleBasedPartitionScanner
 		// Add special case word rule
 		rules.add(new WordPredicateRule(comment));
 		
-		// Add rules for multi-line comments
-		rules.add(new MultiLineRule("/*", "*/", comment, (char)0, true));
+		// Add rule for nested multi-line comments
+		rules.add(new NestedCommentRule(comment));
 		
 		IPredicateRule[] result = new IPredicateRule[rules.size()];
 		rules.toArray(result);
