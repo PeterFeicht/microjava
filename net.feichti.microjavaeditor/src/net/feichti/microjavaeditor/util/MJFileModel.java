@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 import net.feichti.microjavaeditor.MJContentOutlinePage;
+import net.feichti.microjavaeditor.MicroJavaEditorPlugin;
 import net.feichti.microjavaeditor.antlr4.MicroJavaLexer;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ClassDeclContext;
@@ -49,6 +50,55 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
  */
 public class MJFileModel implements ITreeContentProvider
 {
+	/**
+	 * The possible types of variable declarations.
+	 */
+	public static enum VariableKind
+	{
+		/**
+		 * Declaration represents a global variable.
+		 */
+		GLOBAL(MicroJavaEditorPlugin.IMG_VARIABLE),
+		/**
+		 * Declaration represents a local variable.
+		 */
+		LOCAL(MicroJavaEditorPlugin.IMG_LOCAL),
+		/**
+		 * Declaration represents a class field.
+		 */
+		FIELD(MicroJavaEditorPlugin.IMG_FIELD);
+		
+		/**
+		 * The key for getting the outline view icon for this variable kind.
+		 * 
+		 * @see MicroJavaEditorPlugin#getImage(String)
+		 * @see MicroJavaEditorPlugin#getImageDescriptor(String)
+		 */
+		public final String imageKey;
+		
+		/**
+		 * Get a {@link VariableKind} for the specified declaration.
+		 * 
+		 * @param decl The {@link VarDeclContext}
+		 * @return A variable kind, or {@code null} if the type cannot be determined
+		 */
+		public static VariableKind forDeclaration(VarDeclContext decl) {
+			if(decl.parent instanceof ClassDeclContext) {
+				return FIELD;
+			} else if(decl.parent instanceof MethodDeclContext) {
+				return LOCAL;
+			} else if(decl.parent instanceof ProgContext) {
+				return GLOBAL;
+			} else {
+				return null;
+			}
+		}
+		
+		private VariableKind(String imgKey) {
+			imageKey = imgKey;
+		}
+	}
+	
 	/**
 	 * Represents a single syntax error reported by the parser.
 	 * 

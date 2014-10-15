@@ -10,7 +10,7 @@ import net.feichti.microjavaeditor.antlr4.MicroJavaParser.FormParsContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.TypeContext;
-import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
+import net.feichti.microjavaeditor.util.MJFileModel.VariableKind;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -146,13 +146,9 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 			key = MicroJavaEditorPlugin.IMG_CLASS;
 			
 		} else if(element instanceof VarDeclWrapper) {
-			VarDeclContext varDecl = ((VarDeclWrapper)element).getContext();
-			if(varDecl.parent instanceof MethodDeclContext) {
-				key = MicroJavaEditorPlugin.IMG_LOCAL;
-			} else if(varDecl.parent instanceof ClassDeclContext) {
-				key = MicroJavaEditorPlugin.IMG_FIELD;
-			} else {
-				key = MicroJavaEditorPlugin.IMG_VARIABLE;
+			VariableKind kind = VariableKind.forDeclaration(((VarDeclWrapper)element).getContext());
+			if(kind != null) {
+				key = kind.imageKey;
 			}
 			
 		} else if(element instanceof ConstDeclContext) {
