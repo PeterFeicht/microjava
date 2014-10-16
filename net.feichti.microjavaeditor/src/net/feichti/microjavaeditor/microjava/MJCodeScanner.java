@@ -116,7 +116,7 @@ public class MJCodeScanner extends RuleBasedScanner
 	}
 	
 	public static final String[] KEYWORDS = { "program", "class", "if", "else", "while", "switch", "case", "default",
-			"break", "return", "final", "new", "read", "print" };
+			"break", "return", "final", "new", "read", "print", "ord", "chr", "len" };
 	public static final String[] CONSTANTS = { "null" };
 	public static final String[] TYPES = { "int", "char", "void" };
 	public static final char[] OPERATORS = { ';', '.', '=', '/', '+', '-', '*', '<', '>', ':', '?', '!', ',', '%', '&',
