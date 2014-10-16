@@ -341,7 +341,7 @@ public class MJFileModel implements ITreeContentProvider
 	 * </ul>
 	 * 
 	 * @param offset The 0-based offset in the document
-	 * @return A list of {@link TerminalNode}s that are nearest to the offset
+	 * @return A list of {@link TerminalNode}s that are nearest to the offset (sorted by position)
 	 */
 	public List<TerminalNode> getTokensForOffset(final int offset) {
 		List<TerminalNode> ret = new ArrayList<>(2);
@@ -372,11 +372,11 @@ public class MJFileModel implements ITreeContentProvider
 				low = mid + 1;
 				
 			} else if(start == offset) {
-				ret.add(t);
 				if(mid > 0 && mTokens[mid - 1].getSymbol().getStopIndex() + 1 == offset) {
 					// Adjacent tokens, add both
 					ret.add(mTokens[mid - 1]);
 				}
+				ret.add(t);
 				return ret;
 				
 			} else if(stop + 1 == offset) {
@@ -399,10 +399,11 @@ public class MJFileModel implements ITreeContentProvider
 		assert mTokens[low].getSymbol().getStartIndex() > offset ||
 				mTokens[low].getSymbol().getStopIndex() + 1 < offset;
 		
-		ret.add(mTokens[low]);
 		if(mTokens[low].getSymbol().getStartIndex() > offset) {
 			ret.add(mTokens[low - 1]);
+			ret.add(mTokens[low]);
 		} else {
+			ret.add(mTokens[low]);
 			ret.add(mTokens[low - 1]);
 		}
 		
