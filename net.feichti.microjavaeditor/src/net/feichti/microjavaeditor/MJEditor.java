@@ -188,6 +188,16 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 	 * set.
 	 */
 	public void updateHighlight() {
+		updateHighlight(false);
+	}
+	
+	/**
+	 * Update the highlighting range according to the current selection. Requires that the outline page be
+	 * set.
+	 * 
+	 * @param reveal Whether to reveal the new highlight range as well
+	 */
+	public void updateHighlight(boolean reveal) {
 		final ITextSelection sel = (ITextSelection)getSelectionProvider().getSelection();
 		List<TerminalNode> tokens = mOutlinePage.getFileModel().getTokensForOffset(sel.getOffset());
 		// TODO consider selection end to decide on highlight range
@@ -217,6 +227,9 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 		}
 		if(range != null) {
 			setHighlightRange(range.getOffset(), range.getLength(), false);
+			if(reveal) {
+				getSourceViewer().revealRange(range.getOffset(), range.getLength());
+			}
 		}
 	}
 }
