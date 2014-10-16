@@ -33,7 +33,6 @@ import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.DefaultPositionUpdater;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IPositionUpdater;
-import org.eclipse.jface.text.Region;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.texteditor.IDocumentProvider;
@@ -400,7 +399,7 @@ public class MJFileModel implements ITreeContentProvider
 	 * @param sel The selected object
 	 * @return The identifier range, or {@code null}
 	 */
-	public static Region getIdentRange(Object sel) {
+	public static SourceRegion getIdentRange(Object sel) {
 		TerminalNode ident = null;
 		if(sel instanceof MethodDeclContext) {
 			ident = ((MethodDeclContext)sel).Ident();
@@ -421,7 +420,7 @@ public class MJFileModel implements ITreeContentProvider
 		
 		if(ident != null && ident.getSymbol() != null) {
 			Token t = ident.getSymbol();
-			return new Region(t.getStartIndex(), t.getText().length());
+			return new SourceRegion(t.getStartIndex(), t.getText().length());
 		}
 		return null;
 	}
@@ -436,7 +435,7 @@ public class MJFileModel implements ITreeContentProvider
 	 * @return The parent range, or {@code null}
 	 * @see #getContainer(ParseTree)
 	 */
-	public static Region getParentRange(Object sel) {
+	public static SourceRegion getParentRange(Object sel) {
 		ParseTree parent = null;
 		if(sel instanceof ParseTree) {
 			parent = MJFileModel.getContainer((ParseTree)sel);
@@ -452,7 +451,7 @@ public class MJFileModel implements ITreeContentProvider
 	 * @param node A node in the parse tree
 	 * @return The source code range, or {@code null}
 	 */
-	public static Region getSourceRange(ParseTree node) {
+	public static SourceRegion getSourceRange(ParseTree node) {
 		if(node != null) {
 			TerminalNode start = getLeftLeaf(node);
 			if(start == null) {
@@ -462,7 +461,7 @@ public class MJFileModel implements ITreeContentProvider
 			TerminalNode stop = getRightLeaf(node);
 			int startIndex = start.getSymbol().getStartIndex();
 			int stopIndex = stop.getSymbol().getStopIndex();
-			return new Region(startIndex, stopIndex - startIndex + 1);
+			return new SourceRegion(startIndex, stopIndex - startIndex + 1);
 		}
 		return null;
 	}
