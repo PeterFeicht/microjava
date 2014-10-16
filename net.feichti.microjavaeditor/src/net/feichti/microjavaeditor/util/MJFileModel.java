@@ -443,14 +443,23 @@ public class MJFileModel implements ITreeContentProvider
 		} else if(sel instanceof VarDeclWrapper) {
 			parent = MJFileModel.getContainer(((VarDeclWrapper)sel).getContext());
 		}
-		
-		if(parent != null) {
-			TerminalNode start = getLeftLeaf(parent);
+		return getSourceRange(parent);
+	}
+	
+	/**
+	 * Get the source code range of the specified parse tree node.
+	 * 
+	 * @param node A node in the parse tree
+	 * @return The source code range, or {@code null}
+	 */
+	public static Region getSourceRange(ParseTree node) {
+		if(node != null) {
+			TerminalNode start = getLeftLeaf(node);
 			if(start == null) {
 				return null;
 			}
 			// If start is not null, stop won't be either
-			TerminalNode stop = getRightLeaf(parent);
+			TerminalNode stop = getRightLeaf(node);
 			int startIndex = start.getSymbol().getStartIndex();
 			int stopIndex = stop.getSymbol().getStopIndex();
 			return new Region(startIndex, stopIndex - startIndex + 1);
