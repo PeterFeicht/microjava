@@ -24,6 +24,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
@@ -180,7 +181,6 @@ public class MJFileModel implements ITreeContentProvider
 			List<TerminalNode> tmp = collectTerminalNodes(mRoot);
 			if(tmp.size() > 1) {
 				mTokens = tmp.toArray(new TerminalNode[0]);
-				// TODO assert list is sorted
 			} else {
 				// We need two tokens for position search, a program with one token makes no sense anyway
 				mRoot = null;
@@ -339,12 +339,17 @@ public class MJFileModel implements ITreeContentProvider
 	 * <li>If the offset is between two adjacent tokens, the list contains both tokens.</li>
 	 * <li>Otherwise, the list contains the tokens before and after the offset.</li>
 	 * </ul>
+	 * Note that the list may be empty if the parser was not able to parse the file successfully. This can be
+	 * determined by checking whether {@link #getRoot()} returns a non-{@code null} value.
 	 * 
 	 * @param offset The 0-based offset in the document
 	 * @return A list of {@link TerminalNode}s that are nearest to the offset (sorted by position)
 	 */
 	public List<TerminalNode> getTokensForOffset(final int offset) {
 		List<TerminalNode> ret = new ArrayList<>(2);
+		if(mRoot == null) {
+			return ret;
+		}
 		final int maxIdx = mTokens.length - 1;
 		
 		// Corner cases: offset is before first or after last token
@@ -532,7 +537,7 @@ public class MJFileModel implements ITreeContentProvider
 	}
 	
 	/**
-	 * Collects all {@link TerminalNode}s in the specified tree.
+	 * Collects all {@link TerminalNode}s in the specified tree, except error nodes.
 	 * 
 	 * @param tree The tree to collect terminal nodes from
 	 * @return A list of terminal nodes, from left to right (that is, in the same order the appear in the
@@ -546,7 +551,9 @@ public class MJFileModel implements ITreeContentProvider
 			ParseTree next = stack.removeLast();
 			if(next instanceof TerminalNode) {
 				// It is assumed that Terminal nodes don't have children
-				ret.add((TerminalNode)next);
+				if(!(next instanceof ErrorNode)) {
+					ret.add((TerminalNode)next);
+				}
 			} else {
 				for(int j = next.getChildCount() - 1; j >= 0; j--) {
 					stack.addLast(next.getChild(j));
