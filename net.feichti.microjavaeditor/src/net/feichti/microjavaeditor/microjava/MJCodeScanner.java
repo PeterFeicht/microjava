@@ -7,7 +7,6 @@ import net.feichti.microjavaeditor.util.MJColorManager;
 import net.feichti.microjavaeditor.util.MJWhitespaceDetector;
 import net.feichti.microjavaeditor.util.MJWordDetector;
 
-import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
@@ -17,8 +16,6 @@ import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
 import org.eclipse.jface.text.rules.WordRule;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
 
 public class MJCodeScanner extends RuleBasedScanner
 {
@@ -129,15 +126,15 @@ public class MJCodeScanner extends RuleBasedScanner
 	private static final String[] TYPES = { "int", "char", "void" };
 	
 	public MJCodeScanner(MJColorManager colorManager) {
-		IToken keyword = getToken(colorManager.getColor(MJColorManager.KEYWORD), true, false);
-		IToken operator = getToken(colorManager.getColor(MJColorManager.OPERATOR), false, false);
-		IToken bracket = getToken(colorManager.getColor(MJColorManager.BRACKET), false, false);
-		IToken constant = getToken(colorManager.getColor(MJColorManager.CONSTANT), false, true);
-		IToken type = getToken(colorManager.getColor(MJColorManager.TYPE), false, false);
-		IToken number = getToken(colorManager.getColor(MJColorManager.NUMBER), false, false);
-		IToken charconst = getToken(colorManager.getColor(MJColorManager.CHAR_CONST), false, false);
-		IToken other = getToken(colorManager.getColor(MJColorManager.DEFAULT), false, false);
-		IToken main = getToken(colorManager.getColor(MJColorManager.MAIN_METHOD), true, false);
+		IToken keyword = MJColorManager.KEYWORD_STYLE.getStyleToken(colorManager);
+		IToken operator = MJColorManager.OPERATOR_STYLE.getStyleToken(colorManager);
+		IToken bracket = MJColorManager.BRACKET_STYLE.getStyleToken(colorManager);
+		IToken constant = MJColorManager.CONSTANT_STYLE.getStyleToken(colorManager);
+		IToken type = MJColorManager.TYPE_STYLE.getStyleToken(colorManager);
+		IToken number = MJColorManager.NUMBER_STYLE.getStyleToken(colorManager);
+		IToken charconst = MJColorManager.CHAR_CONST_STYLE.getStyleToken(colorManager);
+		IToken other = MJColorManager.DEFAULT_STYLE.getStyleToken(colorManager);
+		IToken main = MJColorManager.MAIN_METHOD_STYLE.getStyleToken(colorManager);
 		
 		List<IRule> rules = new ArrayList<>();
 		
@@ -163,14 +160,5 @@ public class MJCodeScanner extends RuleBasedScanner
 		IRule[] result = new IRule[rules.size()];
 		rules.toArray(result);
 		setRules(result);
-	}
-	
-	private static IToken getToken(Color foreground, boolean bold, boolean italic) {
-		int style = SWT.NORMAL;
-		style |= (bold ? SWT.BOLD : 0);
-		style |= (italic ? SWT.ITALIC : 0);
-		
-		TextAttribute attr = new TextAttribute(foreground, null, style);
-		return new Token(attr);
 	}
 }
