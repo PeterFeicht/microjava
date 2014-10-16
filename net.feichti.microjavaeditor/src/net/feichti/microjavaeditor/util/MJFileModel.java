@@ -1,8 +1,6 @@
 package net.feichti.microjavaeditor.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -335,11 +333,11 @@ public class MJFileModel implements ITreeContentProvider
 	/**
 	 * Get the tokens that are nearest to the specified offset:
 	 * <ul>
-	 * <li>If the offset is inside a single token, then the list contains this token.</li>
-	 * <li>If the offset is between two tokens, the list contains both tokens.</li>
-	 * <li>If the offset is at the beginning of a token, the list contains this token and the one before it,
-	 * if any.</li>
-	 * <li>If the offset is at the end of a token, the list contains this token and the one after it, if any.</li>
+	 * <li>If the offset is before the first or after the last token, the list contains the respective token.</li>
+	 * <li>If the offset is inside a single token, or at the boundary of a token not adjacent to another, the
+	 * list contains this token.</li>
+	 * <li>If the offset is between two adjacent tokens, the list contains both tokens.</li>
+	 * <li>Otherwise, the list contains the tokens before and after the offset.</li>
 	 * </ul>
 	 * 
 	 * @param offset The 0-based offset in the document
@@ -347,44 +345,65 @@ public class MJFileModel implements ITreeContentProvider
 	 */
 	public List<TerminalNode> getTokensForOffset(final int offset) {
 		List<TerminalNode> ret = new ArrayList<>(2);
+		final int maxIdx = mTokens.length - 1;
 		
-		int idx = Arrays.binarySearch(mTokens, null, new Comparator<TerminalNode>() {
-			@Override
-			public int compare(TerminalNode o1, TerminalNode o2) {
-				if(o1 != null) {
-					Token t = o1.getSymbol();
-					if(t.getStartIndex() > offset) {
-						return 1;
-					} else if(t.getStopIndex() < offset) {
-						return -1;
-					}
-				} else {
-					Token t = o2.getSymbol();
-					if(t.getStopIndex() < offset) {
-						return 1;
-					} else if(t.getStartIndex() > offset) {
-						return -1;
-					}
-				}
-				return 0;
-			}
-		});
-		
-		if(idx <= 0) {
+		// Corner cases: offset is before first or after last token
+		if(offset < mTokens[0].getSymbol().getStartIndex()) {
 			ret.add(mTokens[0]);
-			if(mTokens[0].getSymbol().getStopIndex() <= offset) {
-				ret.add(mTokens[1]);
+			return ret;
+		} else if(mTokens[maxIdx].getSymbol().getStopIndex() + 1 < offset) {
+			ret.add(mTokens[maxIdx]);
+			return ret;
+		}
+		
+		// Do a binary search (token positions are increasing)
+		int low = 0;
+		int high = maxIdx;
+		while(low <= high) {
+			final int mid = (low + high) >>> 1;
+			final TerminalNode t = mTokens[mid];
+			final int start = t.getSymbol().getStartIndex();
+			final int stop = t.getSymbol().getStopIndex();
+			
+			if(start > offset) {
+				high = mid - 1;
+				
+			} else if(stop + 1 < offset) {
+				low = mid + 1;
+				
+			} else if(start == offset) {
+				ret.add(t);
+				if(mid > 0 && mTokens[mid - 1].getSymbol().getStopIndex() + 1 == offset) {
+					// Adjacent tokens, add both
+					ret.add(mTokens[mid - 1]);
+				}
+				return ret;
+				
+			} else if(stop + 1 == offset) {
+				ret.add(t);
+				if(mid < maxIdx && mTokens[mid + 1].getSymbol().getStartIndex() == offset) {
+					// Adjacent tokens, add both
+					ret.add(mTokens[mid + 1]);
+				}
+				return ret;
+				
+			} else {
+				assert start < offset && stop >= offset;
+				ret.add(t);
+				return ret;
 			}
-		} else if(idx == mTokens.length) {
-			ret.add(mTokens[mTokens.length - 1]);
+		}
+		
+		// No tokens matched the offset exactly, return the nearest two
+		assert low > 0 && low < maxIdx;
+		assert mTokens[low].getSymbol().getStartIndex() > offset ||
+				mTokens[low].getSymbol().getStopIndex() + 1 < offset;
+		
+		ret.add(mTokens[low]);
+		if(mTokens[low].getSymbol().getStartIndex() > offset) {
+			ret.add(mTokens[low - 1]);
 		} else {
-			TerminalNode found = mTokens[idx];
-			ret.add(found);
-			if(found.getSymbol().getStartIndex() == offset) {
-				ret.add(mTokens[idx - 1]);
-			} else if(found.getSymbol().getStopIndex() == offset && (idx + 1 < mTokens.length)) {
-				ret.add(mTokens[idx + 1]);
-			}
+			ret.add(mTokens[low - 1]);
 		}
 		
 		return ret;
