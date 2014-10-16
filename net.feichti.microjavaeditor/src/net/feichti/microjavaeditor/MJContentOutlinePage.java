@@ -17,7 +17,7 @@ public class MJContentOutlinePage extends ContentOutlinePage
 {
 	protected Object mInput;
 	protected IDocumentProvider mDocumentProvider;
-	protected ITextEditor mTextEditor;
+	protected MJEditor mEditor;
 	protected MJFileModel mFileModel;
 	
 	/**
@@ -26,9 +26,9 @@ public class MJContentOutlinePage extends ContentOutlinePage
 	 * @param provider the document provider
 	 * @param editor the editor
 	 */
-	public MJContentOutlinePage(IDocumentProvider provider, ITextEditor editor) {
+	public MJContentOutlinePage(IDocumentProvider provider, MJEditor editor) {
 		mDocumentProvider = provider;
-		mTextEditor = editor;
+		mEditor = editor;
 		mFileModel = new MJFileModel(mDocumentProvider);
 	}
 	
@@ -54,16 +54,10 @@ public class MJContentOutlinePage extends ContentOutlinePage
 		if(!selection.isEmpty()) {
 			Object sel = selection.getFirstElement();
 			Region ident = MJFileModel.getIdentRange(sel);
-			Region parent = MJFileModel.getParentRange(sel);
-			if(ident == null) {
-				ident = parent;
-			}
 			if(ident != null) {
-				mTextEditor.selectAndReveal(ident.getOffset(), ident.getLength());
+				mEditor.selectAndReveal(ident.getOffset(), ident.getLength());
 			}
-			if(parent != null) {
-				mTextEditor.setHighlightRange(parent.getOffset(), parent.getLength(), false);
-			}
+			mEditor.updateHighlight();
 		}
 	}
 	
@@ -105,7 +99,7 @@ public class MJContentOutlinePage extends ContentOutlinePage
 	 * Get the text editor for this outline page.
 	 */
 	public ITextEditor getTextEditor() {
-		return mTextEditor;
+		return mEditor;
 	}
 	
 	/**
