@@ -24,9 +24,6 @@ public class MJCodeScanner extends RuleBasedScanner
 	 */
 	private static final class OperatorRule implements IRule
 	{
-		private static final char[] OPERATORS = { ';', '.', '=', '/', '+', '-', '*', '<', '>', ':', '?', '!', ',', '%',
-				'&', '|' };
-		
 		private final IToken mToken;
 		
 		/**
@@ -75,8 +72,6 @@ public class MJCodeScanner extends RuleBasedScanner
 	 */
 	private static final class BracketRule implements IRule
 	{
-		private static final char[] BRACKETS = { '(', ')', '{', '}', '[', ']' };
-		
 		private final IToken mToken;
 		
 		/**
@@ -120,10 +115,13 @@ public class MJCodeScanner extends RuleBasedScanner
 		}
 	}
 	
-	private static final String[] KEYWORDS = { "program", "class", "if", "else", "while", "switch", "case", "default",
+	public static final String[] KEYWORDS = { "program", "class", "if", "else", "while", "switch", "case", "default",
 			"break", "return", "final", "new", "read", "print" };
-	private static final String[] CONSTANTS = { "null" };
-	private static final String[] TYPES = { "int", "char", "void" };
+	public static final String[] CONSTANTS = { "null" };
+	public static final String[] TYPES = { "int", "char", "void" };
+	public static final char[] OPERATORS = { ';', '.', '=', '/', '+', '-', '*', '<', '>', ':', '?', '!', ',', '%', '&',
+			'|' };
+	public static final char[] BRACKETS = { '(', ')', '{', '}', '[', ']' };
 	
 	public MJCodeScanner(MJColorManager colorManager) {
 		IToken keyword = MJColorManager.KEYWORD_STYLE.getStyleToken(colorManager);
