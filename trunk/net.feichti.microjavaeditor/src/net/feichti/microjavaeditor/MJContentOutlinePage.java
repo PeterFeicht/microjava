@@ -57,7 +57,7 @@ public class MJContentOutlinePage extends ContentOutlinePage
 			if(ident != null) {
 				mEditor.selectAndReveal(ident.getOffset(), ident.getLength());
 			}
-			mEditor.updateHighlight();
+			mEditor.updateHighlight(true);
 		}
 	}
 	
