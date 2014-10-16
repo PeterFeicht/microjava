@@ -20,6 +20,7 @@ public class MJColorManager
 	public static final RGB DEFAULT = new RGB(0, 0, 0);
 	public static final RGB OPERATOR = new RGB(128, 0, 255);
 	public static final RGB BRACKET = new RGB(0, 0, 0);
+	public static final RGB MAIN_METHOD = new RGB(0, 0, 0);
 	
 	protected Map<RGB, Color> mColorTable = new HashMap<>(10);
 	
