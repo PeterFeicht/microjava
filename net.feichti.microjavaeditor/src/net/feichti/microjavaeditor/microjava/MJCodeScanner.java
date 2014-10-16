@@ -137,6 +137,7 @@ public class MJCodeScanner extends RuleBasedScanner
 		IToken number = getToken(colorManager.getColor(MJColorManager.NUMBER), false, false);
 		IToken charconst = getToken(colorManager.getColor(MJColorManager.CHAR_CONST), false, false);
 		IToken other = getToken(colorManager.getColor(MJColorManager.DEFAULT), false, false);
+		IToken main = getToken(colorManager.getColor(MJColorManager.MAIN_METHOD), true, false);
 		
 		List<IRule> rules = new ArrayList<>();
 		
@@ -156,6 +157,7 @@ public class MJCodeScanner extends RuleBasedScanner
 		for(String s : CONSTANTS) {
 			wordRule.addWord(s, constant);
 		}
+		wordRule.addWord("main", main);
 		rules.add(wordRule);
 		
 		IRule[] result = new IRule[rules.size()];
