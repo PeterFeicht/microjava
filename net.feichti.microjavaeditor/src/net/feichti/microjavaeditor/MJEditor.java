@@ -2,7 +2,9 @@ package net.feichti.microjavaeditor;
 
 import java.util.List;
 
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
 import net.feichti.microjavaeditor.util.MJFileModel;
+import net.feichti.microjavaeditor.util.MJFileModel.VariableKind;
 import net.feichti.microjavaeditor.util.SourceRegion;
 
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -11,6 +13,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.ITextViewerExtension5;
 import org.eclipse.jface.text.Region;
@@ -202,34 +205,44 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 		List<TerminalNode> tokens = mOutlinePage.getFileModel().getTokensForOffset(sel.getOffset());
 		// TODO consider selection end to decide on highlight range
 		
-		SourceRegion range = null;
-		if(tokens.size() == 1) {
+		ParseTree parent;
+		if(tokens.isEmpty()) {
+			return;
+		} else if(tokens.size() == 1) {
 			// Inside a token, highlight the container
-			range = MJFileModel.getParentRange(tokens.get(0));
+			parent = MJFileModel.getContainer(tokens.get(0));
 		} else {
 			// Between two tokens, decide which container to highlight
 			ParseTree p1 = MJFileModel.getContainer(tokens.get(0));
 			ParseTree p2 = MJFileModel.getContainer(tokens.get(1));
 			if(p1 == p2) {
-				range = MJFileModel.getSourceRange(p1);
+				parent = p1;
 			} else {
 				SourceRegion r1 = MJFileModel.getSourceRange(p1);
 				SourceRegion r2 = MJFileModel.getSourceRange(p2);
 				if(r1.contains(r2)) {
-					range = r1;
+					parent = p1;
 				} else if(r2.contains(r1)) {
-					range = r2;
+					parent = p2;
 				} else {
 					// Disjoint regions, highlight parent of both
-					range = MJFileModel.getParentRange(p1.getParent());
+					parent = p1.getParent();
 				}
 			}
 		}
-		if(range != null) {
-			setHighlightRange(range.getOffset(), range.getLength(), false);
-			if(reveal) {
-				getSourceViewer().revealRange(range.getOffset(), range.getLength());
+		
+		assert parent != null;
+		if(parent instanceof VarDeclContext) {
+			if(VariableKind.forDeclaration((VarDeclContext)parent) == VariableKind.LOCAL) {
+				// Highlight method for local variables
+				parent = parent.getParent();
 			}
+		}
+		IRegion range = MJFileModel.getSourceRange(parent);
+		assert range != null;
+		setHighlightRange(range.getOffset(), range.getLength(), false);
+		if(reveal) {
+			getSourceViewer().revealRange(range.getOffset(), range.getLength());
 		}
 	}
 }
