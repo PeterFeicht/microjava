@@ -3,7 +3,9 @@ package net.feichti.microjavaeditor;
 import java.util.List;
 
 import net.feichti.microjavaeditor.util.MJFileModel;
+import net.feichti.microjavaeditor.util.SourceRegion;
 
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -78,6 +80,7 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 		super.doRevertToSaved();
 		if(mOutlinePage != null) {
 			mOutlinePage.update();
+			updateHighlight();
 		}
 	}
 	
@@ -86,6 +89,7 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 		super.doSave(progressMonitor);
 		if(mOutlinePage != null) {
 			mOutlinePage.update();
+			updateHighlight();
 		}
 	}
 	
@@ -94,6 +98,7 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 		super.doSaveAs();
 		if(mOutlinePage != null) {
 			mOutlinePage.update();
+			updateHighlight();
 		}
 	}
 	
@@ -175,17 +180,40 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 	
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
+		updateHighlight();
+	}
+	
+	/**
+	 * Update the highlighting range according to the current selection. Requires that the outline page be
+	 * set.
+	 */
+	public void updateHighlight() {
 		final ITextSelection sel = (ITextSelection)getSelectionProvider().getSelection();
 		List<TerminalNode> tokens = mOutlinePage.getFileModel().getTokensForOffset(sel.getOffset());
 		// TODO consider selection end to decide on highlight range
 		
-		Region range = null;
+		SourceRegion range = null;
 		if(tokens.size() == 1) {
 			// Inside a token, highlight the container
 			range = MJFileModel.getParentRange(tokens.get(0));
 		} else {
 			// Between two tokens, decide which container to highlight
-			// TODO highlight when between two tokens
+			ParseTree p1 = MJFileModel.getContainer(tokens.get(0));
+			ParseTree p2 = MJFileModel.getContainer(tokens.get(1));
+			if(p1 == p2) {
+				range = MJFileModel.getSourceRange(p1);
+			} else {
+				SourceRegion r1 = MJFileModel.getSourceRange(p1);
+				SourceRegion r2 = MJFileModel.getSourceRange(p2);
+				if(r1.contains(r2)) {
+					range = r1;
+				} else if(r2.contains(r1)) {
+					range = r2;
+				} else {
+					// Disjoint regions, highlight parent of both
+					range = MJFileModel.getParentRange(p1.getParent());
+				}
+			}
 		}
 		if(range != null) {
 			setHighlightRange(range.getOffset(), range.getLength(), false);
