@@ -41,6 +41,7 @@ public class MJColorManager
 	public static final RGB IDENTIFIER = new RGB(0, 128, 255);
 	public static final RGB CONSTANT = new RGB(0, 128, 255);
 	public static final RGB TYPE = new RGB(0, 128, 255);
+	public static final RGB CLASS = new RGB(0, 0, 0);
 	public static final RGB CHAR_CONST = new RGB(0, 128, 0);
 	public static final RGB NUMBER = new RGB(255, 0, 0);
 	public static final RGB DEFAULT = new RGB(0, 0, 0);
@@ -52,7 +53,8 @@ public class MJColorManager
 	public static final KeywordStyle KEYWORD_STYLE = new KeywordStyle(KEYWORD, true, false);
 	public static final KeywordStyle IDENTIFIER_STYLE = new KeywordStyle(IDENTIFIER, false, false);
 	public static final KeywordStyle CONSTANT_STYLE = new KeywordStyle(CONSTANT, false, true);
-	public static final KeywordStyle TYPE_STYLE = new KeywordStyle(TYPE, false, true);
+	public static final KeywordStyle TYPE_STYLE = new KeywordStyle(TYPE, false, false);
+	public static final KeywordStyle CLASS_STYLE = new KeywordStyle(CLASS, false, true);
 	public static final KeywordStyle CHAR_CONST_STYLE = new KeywordStyle(CHAR_CONST, false, false);
 	public static final KeywordStyle NUMBER_STYLE = new KeywordStyle(NUMBER, false, false);
 	public static final KeywordStyle DEFAULT_STYLE = new KeywordStyle(DEFAULT, false, false);
