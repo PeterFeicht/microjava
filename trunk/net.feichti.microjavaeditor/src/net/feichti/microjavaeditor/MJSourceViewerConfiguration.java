@@ -80,11 +80,11 @@ public class MJSourceViewerConfiguration extends SourceViewerConfiguration
 	
 	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
-		MJColorManager colorManager = MicroJavaEditorPlugin.getDefault().getColorManager();
+		MJColorManager colorManager = MicroJavaEditorPlugin.getColorManager();
 		PresentationReconciler reconciler = new PresentationReconciler();
 		reconciler.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 		
-		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(MicroJavaEditorPlugin.getDefault().getCodeScanner());
+		DefaultDamagerRepairer dr = new DefaultDamagerRepairer(MicroJavaEditorPlugin.getCodeScanner());
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		
