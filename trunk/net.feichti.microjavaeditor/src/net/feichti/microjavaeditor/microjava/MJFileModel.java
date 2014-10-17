@@ -7,13 +7,23 @@ import java.util.List;
 
 import net.feichti.microjavaeditor.MJContentOutlinePage;
 import net.feichti.microjavaeditor.MicroJavaEditorPlugin;
+import net.feichti.microjavaeditor.antlr4.MicroJavaBaseListener;
 import net.feichti.microjavaeditor.antlr4.MicroJavaLexer;
+import net.feichti.microjavaeditor.antlr4.MicroJavaListener;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ClassDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ConstDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ParamContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
+import net.feichti.microjavaeditor.symtab.ClassSymbol;
+import net.feichti.microjavaeditor.symtab.ConstantSymbol;
+import net.feichti.microjavaeditor.symtab.MethodSymbol;
+import net.feichti.microjavaeditor.symtab.Scope;
+import net.feichti.microjavaeditor.symtab.SymbolTable;
+import net.feichti.microjavaeditor.symtab.Type;
+import net.feichti.microjavaeditor.symtab.VariableSymbol;
 import net.feichti.microjavaeditor.util.SourceRegion;
 import net.feichti.microjavaeditor.util.VarDeclWrapper;
 
@@ -26,6 +36,8 @@ import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
 import org.eclipse.jface.text.BadPositionCategoryException;
@@ -125,10 +137,92 @@ public class MJFileModel implements ITreeContentProvider
 	 */
 	private class ParserErrorListener extends BaseErrorListener
 	{
+		public ParserErrorListener() {
+			
+		}
+		
 		@Override
 		public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
 				String msg, RecognitionException e) {
 			mSyntaxErrors.add(new SyntaxError(line, charPositionInLine, msg, offendingSymbol));
+		}
+	}
+	
+	/**
+	 * A {@link MicroJavaListener} that builds a symbol table when the program is parsed.
+	 */
+	protected class SymbolTableBuilder extends MicroJavaBaseListener
+	{
+		final ParseTreeProperty<Scope> mScopes = new ParseTreeProperty<>();
+		final Scope mGlobalScope;
+		Scope mCurrentScope;
+		
+		public SymbolTableBuilder(SymbolTable tab) {
+			mGlobalScope = tab.getUniverse();
+			mCurrentScope = mGlobalScope;
+			tab.setScopes(mScopes);
+		}
+		
+		private void defineVar(MicroJavaParser.TypeContext ctx, Token ident) {
+			Type type = mCurrentScope.resolveType(ctx.Ident().getText());
+			VariableSymbol var = new VariableSymbol(ident.getText(), type);
+			mCurrentScope.define(var);
+		}
+		
+		@Override
+		public void enterClassDecl(ClassDeclContext ctx) {
+			String name = ctx.Ident().getText();
+			ClassSymbol scope = new ClassSymbol(name, mCurrentScope);
+			mScopes.put(ctx, scope);
+			mCurrentScope = scope;
+		}
+		
+		@Override
+		public void exitClassDecl(ClassDeclContext ctx) {
+			mCurrentScope = mCurrentScope.getParent();
+		}
+		
+		@Override
+		public void enterMethodDecl(MethodDeclContext ctx) {
+			String name = ctx.Ident().getText();
+			Type type = null;
+			if(ctx.type() != null) {
+				type = mCurrentScope.resolveType(ctx.type().Ident().getText());
+			} else if(ctx.getToken(MicroJavaParser.VOID, 0) != null) {
+				type = mCurrentScope.resolveType("void");
+			}
+			MethodSymbol scope = new MethodSymbol(name, type, mCurrentScope);
+			mScopes.put(ctx, scope);
+			mCurrentScope = scope;
+		}
+		
+		@Override
+		public void exitMethodDecl(MethodDeclContext ctx) {
+			mCurrentScope = mCurrentScope.getParent();
+		}
+		
+		@Override
+		public void exitParam(ParamContext ctx) {
+			defineVar(ctx.type(), ctx.Ident().getSymbol());
+		}
+		
+		@Override
+		public void exitVarDecl(VarDeclContext ctx) {
+			for(TerminalNode ident : ctx.Ident()) {
+				defineVar(ctx.type(), ident.getSymbol());
+			}
+		}
+		
+		@Override
+		public void exitConstDecl(ConstDeclContext ctx) {
+			String name = ctx.Ident().getText();
+			Type type = null;
+			if(ctx.type() != null && ctx.type().Ident() != null) {
+				type = mCurrentScope.resolveType(ctx.type().Ident().getText());
+			}
+			Object value = ctx.literal().getText();
+			ConstantSymbol cons = new ConstantSymbol(name, type, value);
+			mCurrentScope.define(cons);
 		}
 	}
 	
@@ -144,6 +238,8 @@ public class MJFileModel implements ITreeContentProvider
 	private ProgContext mRoot = null;
 	/** The list of tokens for position search on successful parse, {@code null} otherwise. */
 	private TerminalNode[] mTokens;
+	/** The symbol table constructed when walking the parse tree. */
+	private SymbolTable mSymbolTable;
 	/** The current document. */
 	private IDocument mDocument = null;
 	
@@ -182,6 +278,9 @@ public class MJFileModel implements ITreeContentProvider
 				mTokens = null;
 			}
 			
+			mSymbolTable = new SymbolTable();
+			ParseTreeWalker.DEFAULT.walk(new SymbolTableBuilder(mSymbolTable), mRoot);
+			
 			System.out.println("parse finished");
 		} catch(RecognitionException ex) {
 			System.out.println("parse failed:");
@@ -213,6 +312,7 @@ public class MJFileModel implements ITreeContentProvider
 		mParser = null;
 		mDocument = null;
 		mTokens = null;
+		mSymbolTable = null;
 		mSyntaxErrors.clear();
 		
 		if(newInput != null) {
