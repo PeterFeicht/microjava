@@ -3,6 +3,7 @@ package net.feichti.microjavaeditor;
 import java.net.URL;
 
 import net.feichti.microjavaeditor.microjava.MJCodeScanner;
+import net.feichti.microjavaeditor.microjava.MJCommentScanner;
 import net.feichti.microjavaeditor.util.MJColorManager;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -37,6 +38,7 @@ public class MicroJavaEditorPlugin extends AbstractUIPlugin
 	private MJPartitionScanner mPartitionScanner;
 	private MJColorManager mColorManager;
 	private MJCodeScanner mCodeScanner;
+	private MJCommentScanner mCommentScanner;
 	
 	@Override
 	public void start(BundleContext context) throws Exception {
@@ -147,5 +149,15 @@ public class MicroJavaEditorPlugin extends AbstractUIPlugin
 			sInstance.mCodeScanner = new MJCodeScanner(getColorManager());
 		}
 		return sInstance.mCodeScanner;
+	}
+	
+	/**
+	 * Get the MicroJava comment scanner.
+	 */
+	public static MJCommentScanner getCommentScanner() {
+		if(sInstance.mCommentScanner == null) {
+			sInstance.mCommentScanner = new MJCommentScanner(getColorManager());
+		}
+		return sInstance.mCommentScanner;
 	}
 }
