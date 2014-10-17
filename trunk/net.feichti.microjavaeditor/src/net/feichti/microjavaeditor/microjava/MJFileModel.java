@@ -133,6 +133,20 @@ public class MJFileModel implements ITreeContentProvider
 	}
 	
 	/**
+	 * Represents a single error encountered during semantic analysis.
+	 */
+	public static class SemanticError extends SyntaxError
+	{
+		public SemanticError(int line, int col, String message, ParseTree parseTreeNode) {
+			super(line, col, message, parseTreeNode);
+		}
+		
+		public ParseTree getParseTreeNode() {
+			return (ParseTree)offendingSymbol;
+		}
+	}
+	
+	/**
 	 * Adds reported syntax errors to {@code mSyntaxErrors}.
 	 */
 	private class ParserErrorListener extends BaseErrorListener
