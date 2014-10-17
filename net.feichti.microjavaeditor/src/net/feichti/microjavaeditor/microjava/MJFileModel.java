@@ -117,6 +117,11 @@ public class MJFileModel implements ITreeContentProvider
 			this.message = message;
 			this.offendingSymbol = offendingSymbol;
 		}
+		
+		@Override
+		public String toString() {
+			return String.format("line %d:%d %s", line, col, message); 
+		}
 	}
 	
 	/**
