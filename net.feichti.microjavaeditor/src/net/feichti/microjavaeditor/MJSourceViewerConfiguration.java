@@ -3,34 +3,23 @@ package net.feichti.microjavaeditor;
 import net.feichti.microjavaeditor.microjava.MJAutoIndentStrategy;
 import net.feichti.microjavaeditor.microjava.MJCompletionProcessor;
 import net.feichti.microjavaeditor.microjava.MJDoubleClickSelector;
-import net.feichti.microjavaeditor.util.MJColorManager;
 
 import org.eclipse.jface.text.DefaultIndentLineAutoEditStrategy;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
-import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
-import org.eclipse.jface.text.rules.BufferedRuleBasedScanner;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
-import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
 public class MJSourceViewerConfiguration extends SourceViewerConfiguration
 {
-	static class SingleTokenScanner extends BufferedRuleBasedScanner
-	{
-		public SingleTokenScanner(TextAttribute attribute) {
-			setDefaultReturnToken(new Token(attribute));
-		}
-	}
-	
 	@Override
 	public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
 		return new MJAnnotationHover();
@@ -80,7 +69,6 @@ public class MJSourceViewerConfiguration extends SourceViewerConfiguration
 	
 	@Override
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
-		MJColorManager colorManager = MicroJavaEditorPlugin.getColorManager();
 		PresentationReconciler reconciler = new PresentationReconciler();
 		reconciler.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
 		
@@ -88,8 +76,7 @@ public class MJSourceViewerConfiguration extends SourceViewerConfiguration
 		reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
 		
-		dr = new DefaultDamagerRepairer(new SingleTokenScanner(new TextAttribute(
-				colorManager.getColor(MJColorManager.COMMENT))));
+		dr = new DefaultDamagerRepairer(MicroJavaEditorPlugin.getCommentScanner());
 		reconciler.setDamager(dr, MJPartitionScanner.MICROJAVA_COMMENT);
 		reconciler.setRepairer(dr, MJPartitionScanner.MICROJAVA_COMMENT);
 		
