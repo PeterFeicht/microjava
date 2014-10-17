@@ -8,6 +8,7 @@ import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ClassDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ConstDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.FormParsContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
+import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ParamContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.TypeContext;
 import net.feichti.microjavaeditor.microjava.MJFileModel.VariableKind;
@@ -99,13 +100,13 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 			
 			FormParsContext pars = method.formPars();
 			if(pars != null) {
-				Iterator<TypeContext> types = pars.type().iterator();
-				if(types.hasNext()) {
-					sb.append(getText(types.next(), "??"));
+				Iterator<ParamContext> params = pars.param().iterator();
+				if(params.hasNext()) {
+					sb.append(getText(params.next().type(), "??"));
 				}
-				while(types.hasNext()) {
+				while(params.hasNext()) {
 					sb.append(", ");
-					sb.append(getText(types.next(), "??"));
+					sb.append(getText(params.next().type(), "??"));
 				}
 			}
 			sb.append(')');
