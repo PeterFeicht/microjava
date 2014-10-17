@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 
 import net.feichti.microjavaeditor.MJContentOutlinePage;
 import net.feichti.microjavaeditor.MicroJavaEditorPlugin;
@@ -18,7 +17,6 @@ import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
 import net.feichti.microjavaeditor.util.SourceRegion;
 import net.feichti.microjavaeditor.util.VarDeclWrapper;
 
-import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -101,8 +99,6 @@ public class MJFileModel implements ITreeContentProvider
 	
 	/**
 	 * Represents a single syntax error reported by the parser.
-	 * 
-	 * @author Peter
 	 */
 	public static class SyntaxError
 	{
@@ -120,33 +116,25 @@ public class MJFileModel implements ITreeContentProvider
 		
 		@Override
 		public String toString() {
-			return String.format("line %d:%d %s", line, col, message); 
+			return String.format("line %d:%d %s", line, col, message);
 		}
 	}
 	
 	/**
-	 * An {@link ANTLRErrorListener} that adds reported syntax errors to a list of {@link SyntaxError}.
-	 * 
-	 * @author Peter
+	 * Adds reported syntax errors to {@code mSyntaxErrors}.
 	 */
-	protected static class ParserErrorListener extends BaseErrorListener
+	private class ParserErrorListener extends BaseErrorListener
 	{
-		private final List<SyntaxError> mList;
-		
-		public ParserErrorListener(List<SyntaxError> list) {
-			mList = Objects.requireNonNull(list);
-		}
-		
 		@Override
 		public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
 				String msg, RecognitionException e) {
-			mList.add(new SyntaxError(line, charPositionInLine, msg, offendingSymbol));
+			mSyntaxErrors.add(new SyntaxError(line, charPositionInLine, msg, offendingSymbol));
 		}
 	}
 	
 	public static final String ELEMENTS = "__microjava_elements";
 	
-	private final List<SyntaxError> mSyntaxErrors = new LinkedList<>();
+	final List<SyntaxError> mSyntaxErrors = new LinkedList<>();
 	private final IPositionUpdater mPositionUpdater;
 	private final IDocumentProvider mDocumentProvider;
 	
@@ -179,7 +167,7 @@ public class MJFileModel implements ITreeContentProvider
 			mParser = new MicroJavaParser(tokens);
 			// We don't want syntax errors printed to the console, so remove the default ConsoleErrorListener
 			mParser.removeErrorListeners();
-			mParser.addErrorListener(new ParserErrorListener(mSyntaxErrors));
+			mParser.addErrorListener(new ParserErrorListener());
 			
 			// Parse!
 			mRoot = mParser.prog();
