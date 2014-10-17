@@ -48,5 +48,21 @@
             class="net.feichti.microjavaeditor.preferences.PreferenceInitializer">
       </initializer>
    </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            class="net.feichti.microjavaeditor.wizards.NewProgramWizard"
+            icon="icons/newprog_wiz.gif"
+            id="net.feichti.microjavaeditor.wizards.new.program"
+            name="%NewProgramWizard.Name"
+            project="false">
+         <description>
+            %NewProgramWizard.Description
+         </description>
+         <selection
+               class="org.eclipse.core.resources.IResource">
+         </selection>
+      </wizard>
+   </extension>
 
 </plugin>
