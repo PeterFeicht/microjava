@@ -11,7 +11,8 @@ constDecl  : 'final' type Ident '=' literal ';' ;
 varDecl    : type Ident ( ',' Ident )* ';' ;
 classDecl  : 'class' Ident '{' varDecl* '}' ;
 methodDecl : ( type | 'void' ) Ident '(' formPars? ')' varDecl* block ;
-formPars   : type Ident ( ',' type Ident )* ;
+formPars   : param ( ',' param )* ;
+param      : type Ident ;
 type       : Ident ( '[' ']' )? ;
 
 block     : '{' statement* '}' ;
