@@ -1,4 +1,4 @@
-package net.feichti.microjavaeditor.util;
+package net.feichti.microjavaeditor.microjava;
 
 import java.util.ArrayList;
 import java.util.Deque;
@@ -15,6 +15,8 @@ import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ConstDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
+import net.feichti.microjavaeditor.util.SourceRegion;
+import net.feichti.microjavaeditor.util.VarDeclWrapper;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;

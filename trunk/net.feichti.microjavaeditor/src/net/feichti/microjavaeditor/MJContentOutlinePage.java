@@ -1,6 +1,6 @@
 package net.feichti.microjavaeditor;
 
-import net.feichti.microjavaeditor.util.MJFileModel;
+import net.feichti.microjavaeditor.microjava.MJFileModel;
 import net.feichti.microjavaeditor.util.MJLabelProvider;
 
 import org.eclipse.jface.text.Region;
