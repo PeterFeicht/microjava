@@ -3,8 +3,8 @@ package net.feichti.microjavaeditor;
 import java.util.List;
 
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.VarDeclContext;
-import net.feichti.microjavaeditor.util.MJFileModel;
-import net.feichti.microjavaeditor.util.MJFileModel.VariableKind;
+import net.feichti.microjavaeditor.microjava.MJFileModel;
+import net.feichti.microjavaeditor.microjava.MJFileModel.VariableKind;
 import net.feichti.microjavaeditor.util.SourceRegion;
 
 import org.antlr.v4.runtime.tree.ParseTree;

@@ -10,7 +10,7 @@ import net.feichti.microjavaeditor.antlr4.MicroJavaParser.FormParsContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.MethodDeclContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.ProgContext;
 import net.feichti.microjavaeditor.antlr4.MicroJavaParser.TypeContext;
-import net.feichti.microjavaeditor.util.MJFileModel.VariableKind;
+import net.feichti.microjavaeditor.microjava.MJFileModel.VariableKind;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.eclipse.jface.resource.ImageDescriptor;
