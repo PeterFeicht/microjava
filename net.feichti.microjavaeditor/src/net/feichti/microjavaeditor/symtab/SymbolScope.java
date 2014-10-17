@@ -42,6 +42,15 @@ public abstract class SymbolScope extends Symbol implements Scope
 		return s;
 	}
 	
+	@Override
+	public Type resolveType(String name) {
+		Symbol sym = resolve(name);
+		if(sym instanceof Type) {
+			return (Type)sym;
+		}
+		return null;
+	}
+	
 	/**
 	 * Get the kind of this symbol. Subclasses can specify this way what kind of symbol they are, for example
 	 * a class or method symbol.
