@@ -97,8 +97,8 @@ public class MicroJavaEditorPlugin extends AbstractUIPlugin
 	 * @param key Either one of the {@code IMG_} constants, or a plugin-relative path to an icon
 	 * @return Image descriptor for the key or path
 	 */
-	public ImageDescriptor getImageDescriptor(String key) {
-		ImageDescriptor d = getImageRegistry().getDescriptor(key);
+	public static ImageDescriptor getImageDescriptor(String key) {
+		ImageDescriptor d = sInstance.getImageRegistry().getDescriptor(key);
 		if(d != null) {
 			return d;
 		}
@@ -111,8 +111,8 @@ public class MicroJavaEditorPlugin extends AbstractUIPlugin
 	 * @param key Either one of the {@code IMG_} constants, or a plugin-relative path to an icon
 	 * @return Image for the key or path
 	 */
-	public Image getImage(String key) {
-		Image i = getImageRegistry().get(key);
+	public static Image getImage(String key) {
+		Image i = sInstance.getImageRegistry().get(key);
 		if(i != null) {
 			return i;
 		}
@@ -122,30 +122,30 @@ public class MicroJavaEditorPlugin extends AbstractUIPlugin
 	/**
 	 * Get the scanner for creating MicroJava partitions.
 	 */
-	public MJPartitionScanner getPartitionScanner() {
-		if(mPartitionScanner == null) {
-			mPartitionScanner = new MJPartitionScanner();
+	public static MJPartitionScanner getPartitionScanner() {
+		if(sInstance.mPartitionScanner == null) {
+			sInstance.mPartitionScanner = new MJPartitionScanner();
 		}
-		return mPartitionScanner;
+		return sInstance.mPartitionScanner;
 	}
 	
 	/**
 	 * Get the MicroJava color manager.
 	 */
-	public MJColorManager getColorManager() {
-		if(mColorManager == null) {
-			mColorManager = new MJColorManager();
+	public static MJColorManager getColorManager() {
+		if(sInstance.mColorManager == null) {
+			sInstance.mColorManager = new MJColorManager();
 		}
-		return mColorManager;
+		return sInstance.mColorManager;
 	}
 	
 	/**
 	 * Get the MicroJava code scanner.
 	 */
-	public MJCodeScanner getCodeScanner() {
-		if(mCodeScanner == null) {
-			mCodeScanner = new MJCodeScanner(getColorManager());
+	public static MJCodeScanner getCodeScanner() {
+		if(sInstance.mCodeScanner == null) {
+			sInstance.mCodeScanner = new MJCodeScanner(getColorManager());
 		}
-		return mCodeScanner;
+		return sInstance.mCodeScanner;
 	}
 }

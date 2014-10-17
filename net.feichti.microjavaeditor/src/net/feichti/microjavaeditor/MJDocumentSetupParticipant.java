@@ -10,7 +10,7 @@ public class MJDocumentSetupParticipant implements IDocumentSetupParticipant
 {
 	@Override
 	public void setup(IDocument document) {
-		MJPartitionScanner partitionScanner = MicroJavaEditorPlugin.getDefault().getPartitionScanner();
+		MJPartitionScanner partitionScanner = MicroJavaEditorPlugin.getPartitionScanner();
 		IDocumentPartitioner partitioner =
 				new FastPartitioner(partitionScanner, MJPartitionScanner.MICROJAVA_PARTITION_TYPES);
 		

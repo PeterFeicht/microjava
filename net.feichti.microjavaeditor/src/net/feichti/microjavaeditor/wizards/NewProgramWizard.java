@@ -40,7 +40,7 @@ public class NewProgramWizard extends Wizard implements INewWizard
 		setWindowTitle(MJEditorMessages.getString("NewProgramWizard.WindowTitle"));
 		setNeedsProgressMonitor(true);
 		
-		 ImageDescriptor pageImage = MicroJavaEditorPlugin.getDefault().getImageDescriptor("icons/newfile_wizban.png");
+		 ImageDescriptor pageImage = MicroJavaEditorPlugin.getImageDescriptor("icons/newfile_wizban.png");
 		 setDefaultPageImageDescriptor(pageImage);
 	}
 	

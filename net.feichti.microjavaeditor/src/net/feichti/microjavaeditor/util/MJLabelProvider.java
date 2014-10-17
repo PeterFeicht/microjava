@@ -48,12 +48,15 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 	}
 	
 	public MJLabelProvider() {
-		MicroJavaEditorPlugin plugin = MicroJavaEditorPlugin.getDefault();
-		ImageDescriptor d = new DecorationOverlayIcon(plugin.getImage(MicroJavaEditorPlugin.IMG_VARIABLE),
-				plugin.getImageDescriptor(MicroJavaEditorPlugin.IMG_CONSTANT_OVERLAY), IDecoration.TOP_RIGHT);
+		ImageDescriptor d = new DecorationOverlayIcon(
+				MicroJavaEditorPlugin.getImage(MicroJavaEditorPlugin.IMG_VARIABLE),
+				MicroJavaEditorPlugin.getImageDescriptor(MicroJavaEditorPlugin.IMG_CONSTANT_OVERLAY),
+				IDecoration.TOP_RIGHT);
 		mConstImage = d.createImage();
-		d = new DecorationOverlayIcon(plugin.getImage(MicroJavaEditorPlugin.IMG_METHOD),
-				plugin.getImageDescriptor(MicroJavaEditorPlugin.IMG_MAIN_OVERLAY), IDecoration.TOP_LEFT);
+		d = new DecorationOverlayIcon(
+				MicroJavaEditorPlugin.getImage(MicroJavaEditorPlugin.IMG_METHOD),
+				MicroJavaEditorPlugin.getImageDescriptor(MicroJavaEditorPlugin.IMG_MAIN_OVERLAY),
+				IDecoration.TOP_LEFT);
 		mMainImage = d.createImage();
 	}
 	
@@ -166,7 +169,7 @@ public class MJLabelProvider extends BaseLabelProvider implements IStyledLabelPr
 			
 		}
 		
-		return (key != null ? MicroJavaEditorPlugin.getDefault().getImage(key) : null);
+		return (key != null ? MicroJavaEditorPlugin.getImage(key) : null);
 	}
 	
 	/**
