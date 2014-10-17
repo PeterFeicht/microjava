@@ -30,5 +30,6 @@ public class MJCommentScanner extends RuleBasedScanner
 		IRule[] result = new IRule[rules.size()];
 		rules.toArray(result);
 		setRules(result);
+		setDefaultReturnToken(comment);
 	}
 }
