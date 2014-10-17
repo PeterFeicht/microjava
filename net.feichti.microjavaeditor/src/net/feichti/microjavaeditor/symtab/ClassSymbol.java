@@ -5,7 +5,7 @@ package net.feichti.microjavaeditor.symtab;
  * 
  * @author Peter
  */
-public class ClassScope extends SymbolScope
+public class ClassSymbol extends SymbolScope implements Type
 {
 	/**
 	 * Create a new class scope with the specified name and parent scope.
@@ -13,7 +13,7 @@ public class ClassScope extends SymbolScope
 	 * @param name The name of the class
 	 * @param parent The enclosing scope
 	 */
-	public ClassScope(String name, Scope parent) {
+	public ClassSymbol(String name, Scope parent) {
 		super(name, parent);
 	}
 	
