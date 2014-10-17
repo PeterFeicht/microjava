@@ -37,6 +37,15 @@ public abstract class AbstractScope implements Scope
 		return s;
 	}
 	
+	@Override
+	public Type resolveType(String name) {
+		Symbol sym = resolve(name);
+		if(sym instanceof Type) {
+			return (Type)sym;
+		}
+		return null;
+	}
+	
 	/**
 	 * Determine whether a symbol from this scope is hiding a symbol from an enclosing scope.
 	 * 

@@ -33,4 +33,12 @@ public interface Scope
 	 * @return The symbol, or {@code null} if no symbol with the specified name is defined
 	 */
 	public Symbol resolve(String name);
+	
+	/**
+	 * Resolve a type symbol for the specified name.
+	 * 
+	 * @param name The type name to resolve
+	 * @return The type, or {@code null} if no type symbol with the specified name is defined
+	 */
+	public Type resolveType(String name);
 }
