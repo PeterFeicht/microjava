@@ -40,7 +40,7 @@ public class MJColorManager
 			int style = SWT.NORMAL;
 			style |= (bold ? SWT.BOLD : 0);
 			style |= (italic ? SWT.ITALIC : 0);
-			style |= (underline ? SWT.UNDERLINE_SINGLE : 0);
+			style |= (underline ? TextAttribute.UNDERLINE : 0);
 			
 			TextAttribute attr = new TextAttribute(colorManager.getColor(color), null, style);
 			return new Token(attr);
