@@ -27,6 +27,10 @@ public class SymbolTable
 		mUniverse.define(new BuiltinTypeSymbol("void"));
 	}
 	
+	public GlobalScope getUniverse() {
+		return mUniverse;
+	}
+	
 	@Override
 	public String toString() {
 		return mUniverse.toString();
