@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <description name="feichti.net Eclipse plugins">
-      Eclipse plugins made by Pezo.
-   </description>
    <feature url="features/net.feichti.microjavaeditor.feature_1.0.0.qualifier.jar" id="net.feichti.microjavaeditor.feature" version="1.0.0.qualifier">
       <category name="net.feichti.eclipseplugins.category"/>
    </feature>
