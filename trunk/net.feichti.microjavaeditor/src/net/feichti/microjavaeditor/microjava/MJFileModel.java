@@ -612,7 +612,9 @@ public class MJFileModel implements ITreeContentProvider
 		while(!stack.isEmpty()) {
 			ParseTree next = stack.removeLast();
 			if(next instanceof TerminalNode) {
-				return (TerminalNode)next;
+				if(!(next instanceof ErrorNode)) {
+					return (TerminalNode)next;
+				}
 			}
 			
 			for(int j = next.getChildCount() - 1; j >= 0; j--) {
@@ -634,7 +636,9 @@ public class MJFileModel implements ITreeContentProvider
 		while(!stack.isEmpty()) {
 			ParseTree next = stack.removeLast();
 			if(next instanceof TerminalNode) {
-				return (TerminalNode)next;
+				if(!(next instanceof ErrorNode)) {
+					return (TerminalNode)next;
+				}
 			}
 			
 			final int childCount = next.getChildCount();
