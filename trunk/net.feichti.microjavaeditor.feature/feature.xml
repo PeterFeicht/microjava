@@ -2,15 +2,12 @@
 <feature
       id="net.feichti.microjavaeditor.feature"
       label="MicroJava Editor"
-      version="1.0.0.qualifier">
+      version="1.0.0.qualifier"
+      provider-name="Peter Feichtinger">
 
    <description>
       An editor for MicroJava files (*.mj) with syntax highlighting.
    </description>
-
-   <copyright>
-      No copyright.
-   </copyright>
 
    <license url="">
       No license agreement.
@@ -22,6 +19,9 @@
       <import plugin="org.eclipse.jface.text"/>
       <import plugin="org.eclipse.ui.editors"/>
       <import plugin="org.eclipse.ui.views"/>
+      <import plugin="org.eclipse.text"/>
+      <import plugin="org.eclipse.ui.ide"/>
+      <import plugin="org.eclipse.core.resources"/>
    </requires>
 
    <plugin
