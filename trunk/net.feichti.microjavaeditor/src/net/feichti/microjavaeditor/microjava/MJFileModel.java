@@ -446,7 +446,7 @@ public class MJFileModel implements ITreeContentProvider
 	 * <li>If the offset is inside a single token, or at the boundary of a token not adjacent to another, the
 	 * list contains this token.</li>
 	 * <li>If the offset is between two adjacent tokens, the list contains both tokens.</li>
-	 * <li>Otherwise, the list contains the tokens before and after the offset.</li>
+	 * <li>Otherwise, the list contains the tokens immediately before and after the offset.</li>
 	 * </ul>
 	 * Note that the list may be empty if the parser was not able to parse the file successfully. This can be
 	 * determined by checking whether {@link #getRoot()} returns a non-{@code null} value.
