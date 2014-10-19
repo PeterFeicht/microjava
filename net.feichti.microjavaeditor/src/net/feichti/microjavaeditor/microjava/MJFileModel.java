@@ -116,24 +116,20 @@ public class MJFileModel implements ITreeContentProvider
 	}
 	
 	/**
-	 * Represents a single syntax error reported by the parser.
+	 * Base class for errors encountered during parsing.
 	 */
-	public static class SyntaxError
+	public static abstract class ParserError
 	{
 		public final int line;
 		public final int col;
 		public final String message;
 		public final Object offendingSymbol;
 		
-		public SyntaxError(int line, int col, String message, Object offendingSymbol) {
+		public ParserError(int line, int col, String message, Object offendingSymbol) {
 			this.line = line;
 			this.col = col;
 			this.message = message;
 			this.offendingSymbol = offendingSymbol;
-		}
-		
-		public Token getToken() {
-			return (Token)offendingSymbol;
 		}
 		
 		@Override
@@ -143,9 +139,23 @@ public class MJFileModel implements ITreeContentProvider
 	}
 	
 	/**
+	 * Represents a single syntax error reported by the parser.
+	 */
+	public static class SyntaxError extends ParserError
+	{
+		public SyntaxError(int line, int col, String message, Token token) {
+			super(line, col, message, token);
+		}
+		
+		public Token getToken() {
+			return (Token)offendingSymbol;
+		}
+	}
+	
+	/**
 	 * Represents a single error encountered during semantic analysis.
 	 */
-	public static class SemanticError extends SyntaxError
+	public static class SemanticError extends ParserError
 	{
 		public SemanticError(int line, int col, String message, ParseTree parseTreeNode) {
 			super(line, col, message, parseTreeNode);
@@ -168,7 +178,7 @@ public class MJFileModel implements ITreeContentProvider
 		@Override
 		public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
 				String msg, RecognitionException e) {
-			mSyntaxErrors.add(new SyntaxError(line, charPositionInLine, msg, offendingSymbol));
+			mErrors.add(new SyntaxError(line, charPositionInLine, msg, (Token)offendingSymbol));
 		}
 	}
 	
@@ -252,7 +262,7 @@ public class MJFileModel implements ITreeContentProvider
 	
 	public static final String ELEMENTS = "__microjava_elements";
 	
-	final List<SyntaxError> mSyntaxErrors = new LinkedList<>();
+	final List<ParserError> mErrors = new LinkedList<>();
 	private final IPositionUpdater mPositionUpdater;
 	private final IDocumentProvider mDocumentProvider;
 	
@@ -283,7 +293,8 @@ public class MJFileModel implements ITreeContentProvider
 	 * Parse the specified document and set {@link #mRoot} and {@link #mParser}.
 	 * <p>
 	 * This method also populates the token list ({@link #mTokens} for token position search), adds markers
-	 * for encountered syntax errors (which are added to {@link #mSyntaxErrors}) and builds a symbol table.
+	 * for encountered syntax and semantic errors (which are added to {@link #mErrors}) and builds a symbol
+	 * table.
 	 */
 	private void parse(IDocument doc) {
 		try {
@@ -321,7 +332,16 @@ public class MJFileModel implements ITreeContentProvider
 			
 			try {
 				final int docLength = mDocument.getLength();
-				for(SyntaxError err : mSyntaxErrors) {
+				for(ParserError err : mErrors) {
+					int errLength;
+					if(err instanceof SyntaxError) {
+						errLength = ((SyntaxError)err).getToken().getText().length();
+					} else if(err instanceof SemanticError) {
+						errLength = ((SemanticError)err).getParseTreeNode().getText().length();
+					} else {
+						errLength = err.offendingSymbol.toString().length();
+					}
+					
 					IMarker m = mInputResource.createMarker(IMarker.PROBLEM);
 					m.setAttribute(IMarker.LINE_NUMBER, err.line);
 					m.setAttribute(IMarker.MESSAGE, err.message);
@@ -330,7 +350,7 @@ public class MJFileModel implements ITreeContentProvider
 						int offset = mDocument.getLineOffset(err.line - 1);
 						if(offset + err.col < docLength) {
 							m.setAttribute(IMarker.CHAR_START, offset + err.col);
-							m.setAttribute(IMarker.CHAR_END, offset + err.col + err.getToken().getText().length());
+							m.setAttribute(IMarker.CHAR_END, offset + err.col + errLength);
 						} else {
 							m.setAttribute(IMarker.CHAR_START, docLength - 1);
 							m.setAttribute(IMarker.CHAR_END, docLength);
@@ -376,7 +396,7 @@ public class MJFileModel implements ITreeContentProvider
 		mDocument = null;
 		mTokens = null;
 		mSymbolTable = null;
-		mSyntaxErrors.clear();
+		mErrors.clear();
 		
 		if(newInput != null) {
 			mDocument = mDocumentProvider.getDocument(newInput);
@@ -483,10 +503,10 @@ public class MJFileModel implements ITreeContentProvider
 	}
 	
 	/**
-	 * Get the list of syntax errors encountered during parsing.
+	 * Get the list of syntax and semantic errors encountered during parsing.
 	 */
-	public List<SyntaxError> getSyntaxErrors() {
-		return mSyntaxErrors;
+	public List<ParserError> getErrors() {
+		return mErrors;
 	}
 	
 	/**
