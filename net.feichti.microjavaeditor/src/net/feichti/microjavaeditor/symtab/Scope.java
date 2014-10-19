@@ -27,6 +27,14 @@ public interface Scope
 	public void define(Symbol sym);
 	
 	/**
+	 * Determine whether a symbol is defined.
+	 * 
+	 * @param name The symbol name to check
+	 * @return {@code true} if the symbol is defined in this or any enclosing scope, {@code false} otherwise
+	 */
+	public boolean isDefined(String name);
+	
+	/**
 	 * Resolve a symbol for the specified name.
 	 * 
 	 * @param name The symbol name to resolve
