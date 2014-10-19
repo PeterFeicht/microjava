@@ -320,23 +320,24 @@ public class MJFileModel implements ITreeContentProvider
 			ParseTreeWalker.DEFAULT.walk(new SymbolTableBuilder(mSymbolTable), mRoot);
 			
 			try {
+				final int docLength = mDocument.getLength();
 				for(SyntaxError err : mSyntaxErrors) {
 					IMarker m = mInputResource.createMarker(IMarker.PROBLEM);
+					m.setAttribute(IMarker.LINE_NUMBER, err.line);
+					m.setAttribute(IMarker.MESSAGE, err.message);
+					m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 					try {
 						int offset = mDocument.getLineOffset(err.line - 1);
-						if(offset + err.col < mDocument.getLength()) {
+						if(offset + err.col < docLength) {
 							m.setAttribute(IMarker.CHAR_START, offset + err.col);
 							m.setAttribute(IMarker.CHAR_END, offset + err.col + err.getToken().getText().length());
 						} else {
-							m.setAttribute(IMarker.CHAR_START, mDocument.getLength() - 1);
-							m.setAttribute(IMarker.CHAR_END, mDocument.getLength());
+							m.setAttribute(IMarker.CHAR_START, docLength - 1);
+							m.setAttribute(IMarker.CHAR_END, docLength);
 						}
 					} catch(BadLocationException ex) {
 						// Ignore, no exact position available
 					}
-					m.setAttribute(IMarker.LINE_NUMBER, err.line);
-					m.setAttribute(IMarker.MESSAGE, err.message);
-					m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 				}
 			} catch(CoreException ex) {
 				System.err.println("Failed to create problem marker:");
