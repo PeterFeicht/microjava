@@ -2,8 +2,10 @@ package net.feichti.microjavaeditor.microjava;
 
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import net.feichti.microjavaeditor.MJContentOutlinePage;
 import net.feichti.microjavaeditor.MicroJavaEditorPlugin;
@@ -21,6 +23,7 @@ import net.feichti.microjavaeditor.symtab.ClassSymbol;
 import net.feichti.microjavaeditor.symtab.ConstantSymbol;
 import net.feichti.microjavaeditor.symtab.MethodSymbol;
 import net.feichti.microjavaeditor.symtab.Scope;
+import net.feichti.microjavaeditor.symtab.Symbol;
 import net.feichti.microjavaeditor.symtab.SymbolTable;
 import net.feichti.microjavaeditor.symtab.Type;
 import net.feichti.microjavaeditor.symtab.VariableSymbol;
@@ -188,6 +191,7 @@ public class MJFileModel implements ITreeContentProvider
 	protected class SymbolTableBuilder extends MicroJavaBaseListener
 	{
 		final ParseTreeProperty<Scope> mScopes = new ParseTreeProperty<>();
+		final Map<Symbol, ParseTree> mDeclarations = new IdentityHashMap<>();
 		final Scope mGlobalScope;
 		Scope mCurrentScope;
 		
@@ -195,19 +199,23 @@ public class MJFileModel implements ITreeContentProvider
 			mGlobalScope = tab.getUniverse();
 			mCurrentScope = mGlobalScope;
 			tab.setScopes(mScopes);
+			tab.setDeclarations(mDeclarations);
 		}
 		
-		private void defineVar(MicroJavaParser.TypeContext ctx, Token ident) {
+		private VariableSymbol defineVar(MicroJavaParser.TypeContext ctx, Token ident) {
 			Type type = mCurrentScope.resolveType(ctx.Ident().getText());
 			VariableSymbol var = new VariableSymbol(ident.getText(), type);
 			mCurrentScope.define(var);
+			return var;
 		}
 		
 		@Override
 		public void enterClassDecl(ClassDeclContext ctx) {
 			String name = ctx.Ident().getText();
 			ClassSymbol scope = new ClassSymbol(name, mCurrentScope);
+			mDeclarations.put(scope, ctx);
 			mScopes.put(ctx, scope);
+			mCurrentScope.define(scope);
 			mCurrentScope = scope;
 		}
 		
@@ -226,6 +234,7 @@ public class MJFileModel implements ITreeContentProvider
 				type = mCurrentScope.resolveType("void");
 			}
 			MethodSymbol scope = new MethodSymbol(name, type, mCurrentScope);
+			mDeclarations.put(scope, ctx);
 			mScopes.put(ctx, scope);
 			mCurrentScope = scope;
 		}
@@ -237,13 +246,15 @@ public class MJFileModel implements ITreeContentProvider
 		
 		@Override
 		public void exitParam(ParamContext ctx) {
-			defineVar(ctx.type(), ctx.Ident().getSymbol());
+			Symbol param = defineVar(ctx.type(), ctx.Ident().getSymbol());
+			mDeclarations.put(param, ctx.getParent());
 		}
 		
 		@Override
 		public void exitVarDecl(VarDeclContext ctx) {
 			for(TerminalNode ident : ctx.Ident()) {
-				defineVar(ctx.type(), ident.getSymbol());
+				Symbol var = defineVar(ctx.type(), ident.getSymbol());
+				mDeclarations.put(var, ctx);
 			}
 		}
 		
@@ -256,6 +267,7 @@ public class MJFileModel implements ITreeContentProvider
 			}
 			Object value = ctx.literal().getText();
 			ConstantSymbol cons = new ConstantSymbol(name, type, value);
+			mDeclarations.put(cons, ctx);
 			mCurrentScope.define(cons);
 		}
 	}
