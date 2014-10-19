@@ -324,8 +324,13 @@ public class MJFileModel implements ITreeContentProvider
 					IMarker m = mInputResource.createMarker(IMarker.PROBLEM);
 					try {
 						int offset = mDocument.getLineOffset(err.line - 1);
-						m.setAttribute(IMarker.CHAR_START, offset + err.col);
-						m.setAttribute(IMarker.CHAR_END, offset + err.col + err.getToken().getText().length());
+						if(offset + err.col < mDocument.getLength()) {
+							m.setAttribute(IMarker.CHAR_START, offset + err.col);
+							m.setAttribute(IMarker.CHAR_END, offset + err.col + err.getToken().getText().length());
+						} else {
+							m.setAttribute(IMarker.CHAR_START, mDocument.getLength() - 1);
+							m.setAttribute(IMarker.CHAR_END, mDocument.getLength());
+						}
 					} catch(BadLocationException ex) {
 						// Ignore, no exact position available
 					}
