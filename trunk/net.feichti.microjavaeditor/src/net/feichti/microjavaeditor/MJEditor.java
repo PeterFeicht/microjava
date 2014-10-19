@@ -131,6 +131,11 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 				}
 			}
 			return mOutlinePage;
+		} else if(MJFileModel.class.equals(adapter)) {
+			if(mOutlinePage == null) {
+				getAdapter(IContentOutlinePage.class);
+			}
+			return mOutlinePage.getFileModel();
 		}
 		
 		return super.getAdapter(adapter);
@@ -139,7 +144,7 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 	@Override
 	protected void initializeEditor() {
 		super.initializeEditor();
-		setSourceViewerConfiguration(new MJSourceViewerConfiguration());
+		setSourceViewerConfiguration(new MJSourceViewerConfiguration(this));
 	}
 	
 	@Override

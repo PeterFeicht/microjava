@@ -21,6 +21,12 @@ import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
 public class MJSourceViewerConfiguration extends SourceViewerConfiguration
 {
+	private MJEditor mEditor;
+	
+	public MJSourceViewerConfiguration(MJEditor editor) {
+		mEditor = editor;
+	}
+	
 	@Override
 	public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
 		return new DefaultAnnotationHover(true);
@@ -91,6 +97,6 @@ public class MJSourceViewerConfiguration extends SourceViewerConfiguration
 	
 	@Override
 	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
-		return new MJTextHover();
+		return new MJTextHover(mEditor, sourceViewer);
 	}
 }
