@@ -281,6 +281,9 @@ public class MJFileModel implements ITreeContentProvider
 	
 	/**
 	 * Parse the specified document and set {@link #mRoot} and {@link #mParser}.
+	 * <p>
+	 * This method also populates the token list ({@link #mTokens} for token position search), adds markers
+	 * for encountered syntax errors (which are added to {@link #mSyntaxErrors}) and builds a symbol table.
 	 */
 	private void parse(IDocument doc) {
 		try {
@@ -297,9 +300,9 @@ public class MJFileModel implements ITreeContentProvider
 			// Collect terminal nodes for position search
 			List<TerminalNode> tmp = collectTerminalNodes(mRoot);
 			if(tmp.size() > 1) {
+				// We need two tokens for position search, a program with one token makes no sense anyway
 				mTokens = tmp.toArray(new TerminalNode[0]);
 			} else {
-				// We need two tokens for position search, a program with one token makes no sense anyway
 				mRoot = null;
 				mTokens = null;
 			}
