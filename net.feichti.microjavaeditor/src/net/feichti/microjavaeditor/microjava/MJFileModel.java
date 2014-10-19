@@ -40,12 +40,18 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.DefaultPositionUpdater;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.ide.ResourceUtil;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
 /**
@@ -124,6 +130,10 @@ public class MJFileModel implements ITreeContentProvider
 			this.col = col;
 			this.message = message;
 			this.offendingSymbol = offendingSymbol;
+		}
+		
+		public Token getToken() {
+			return (Token)offendingSymbol;
 		}
 		
 		@Override
@@ -256,6 +266,8 @@ public class MJFileModel implements ITreeContentProvider
 	private SymbolTable mSymbolTable;
 	/** The current document. */
 	private IDocument mDocument = null;
+	/** The resource for the current input. */
+	private IResource mInputResource = null;
 	
 	/**
 	 * Initialize a new model with the specified content provider.
@@ -292,15 +304,36 @@ public class MJFileModel implements ITreeContentProvider
 				mTokens = null;
 			}
 			
-			mSymbolTable = new SymbolTable();
-			ParseTreeWalker.DEFAULT.walk(new SymbolTableBuilder(mSymbolTable), mRoot);
-			
 			System.out.println("parse finished");
 		} catch(RecognitionException ex) {
 			System.out.println("parse failed:");
 			ex.printStackTrace();
 			mRoot = null;
 			mTokens = null;
+		}
+		
+		if(mRoot != null) {
+			mSymbolTable = new SymbolTable();
+			ParseTreeWalker.DEFAULT.walk(new SymbolTableBuilder(mSymbolTable), mRoot);
+			
+			try {
+				for(SyntaxError err : mSyntaxErrors) {
+					IMarker m = mInputResource.createMarker(IMarker.PROBLEM);
+					try {
+						int offset = mDocument.getLineOffset(err.line - 1);
+						m.setAttribute(IMarker.CHAR_START, offset + err.col);
+						m.setAttribute(IMarker.CHAR_END, offset + err.col + err.getToken().getText().length());
+					} catch(BadLocationException ex) {
+						// Ignore, no exact position available
+					}
+					m.setAttribute(IMarker.LINE_NUMBER, err.line);
+					m.setAttribute(IMarker.MESSAGE, err.message);
+					m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+				}
+			} catch(CoreException ex) {
+				System.err.println("Failed to create problem marker:");
+				ex.printStackTrace();
+			}
 		}
 	}
 	
@@ -320,6 +353,13 @@ public class MJFileModel implements ITreeContentProvider
 				}
 				mDocument.removePositionUpdater(mPositionUpdater);
 			}
+			if(mInputResource != null) {
+				try {
+					mInputResource.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+				} catch(CoreException ex) {
+					
+				}
+			}
 		}
 		
 		mRoot = null;
@@ -336,6 +376,7 @@ public class MJFileModel implements ITreeContentProvider
 				mDocument.addPositionUpdater(mPositionUpdater);
 				parse(mDocument);
 			}
+			mInputResource = ResourceUtil.getResource((IEditorInput)newInput);
 		}
 	}
 	
