@@ -1,5 +1,6 @@
 package net.feichti.microjavaeditor.symtab;
 
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 /**
@@ -43,14 +44,38 @@ public class SymbolTable
 	public ParseTreeProperty<Scope> getScopes() {
 		return mScopes;
 	}
-
+	
+	/**
+	 * Resolve a symbol in the specified context. The symbol is resolved in the scope associated with the
+	 * specified context, or the next parent context, if one can be found.
+	 * 
+	 * @param name The symbol name to resolve
+	 * @param context The context to resolve the symbol in
+	 * @return The symbol, or {@code null} if no scope for the context is found or no symbol with the
+	 *         specified name is defined
+	 */
+	public Symbol resolve(String name, ParseTree context) {
+		ParseTree next = context;
+		Scope scope = null;
+		
+		while(scope == null && next != null) {
+			scope = mScopes.get(next);
+			next = next.getParent();
+		}
+		
+		if(scope != null) {
+			return scope.resolve(name);
+		}
+		return null;
+	}
+	
 	/**
 	 * Set the {@link ParseTreeProperty} for the scope annotations.
 	 */
 	public void setScopes(ParseTreeProperty<Scope> scopes) {
 		mScopes = scopes;
 	}
-
+	
 	@Override
 	public String toString() {
 		return mUniverse.toString();
