@@ -30,6 +30,12 @@ public class SymbolTable
 		mUniverse.define(new BuiltinTypeSymbol("int"));
 		mUniverse.define(new BuiltinTypeSymbol("char"));
 		
+		mUniverse.define(new BuiltinFunctionSymbol("print"));
+		mUniverse.define(new BuiltinFunctionSymbol("read"));
+		mUniverse.define(new BuiltinFunctionSymbol("ord"));
+		mUniverse.define(new BuiltinFunctionSymbol("chr"));
+		mUniverse.define(new BuiltinFunctionSymbol("len"));
+		
 		// Also define void pseudo-type
 		mUniverse.define(new BuiltinTypeSymbol("void"));
 	}
