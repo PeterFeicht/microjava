@@ -1,5 +1,7 @@
 package net.feichti.microjavaeditor.symtab;
 
+import java.util.Map;
+
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
@@ -15,6 +17,7 @@ public class SymbolTable
 {
 	private final GlobalScope mUniverse = new GlobalScope();
 	private ParseTreeProperty<Scope> mScopes;
+	private Map<Symbol, ParseTree> mDeclarations;
 	
 	/**
 	 * Create a new symbol table with the default global symbols.
@@ -46,6 +49,27 @@ public class SymbolTable
 	}
 	
 	/**
+	 * Set the {@link ParseTreeProperty} for the scope annotations.
+	 */
+	public void setScopes(ParseTreeProperty<Scope> scopes) {
+		mScopes = scopes;
+	}
+	
+	/**
+	 * Get the declaration map, a map associating symbols with their declaration sites.
+	 */
+	public Map<Symbol, ParseTree> getDeclarations() {
+		return mDeclarations;
+	}
+
+	/**
+	 * Set the declaration map.
+	 */
+	public void setDeclarations(Map<Symbol, ParseTree> declarations) {
+		mDeclarations = declarations;
+	}
+
+	/**
 	 * Resolve a symbol in the specified context. The symbol is resolved in the scope associated with the
 	 * specified context, or the next parent context, if one can be found.
 	 * 
@@ -67,13 +91,6 @@ public class SymbolTable
 			return scope.resolve(name);
 		}
 		return null;
-	}
-	
-	/**
-	 * Set the {@link ParseTreeProperty} for the scope annotations.
-	 */
-	public void setScopes(ParseTreeProperty<Scope> scopes) {
-		mScopes = scopes;
 	}
 	
 	@Override
