@@ -29,6 +29,16 @@ public abstract class AbstractScope implements Scope
 	}
 	
 	@Override
+	public boolean isDefined(String name) {
+		if(mSymbols.containsKey(name)) {
+			return true;
+		} else if(mParent != null) {
+			return mParent.isDefined(name);
+		}
+		return false;
+	}
+	
+	@Override
 	public Symbol resolve(String name) {
 		Symbol s = mSymbols.get(name);
 		if(s == null && mParent != null) {

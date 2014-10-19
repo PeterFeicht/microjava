@@ -43,6 +43,16 @@ public abstract class SymbolScope extends Symbol implements Scope
 	}
 	
 	@Override
+	public boolean isDefined(String name) {
+		if(mSymbols.containsKey(name)) {
+			return true;
+		} else if(getScope() != null) {
+			return getScope().isDefined(name);
+		}
+		return false;
+	}
+	
+	@Override
 	public Type resolveType(String name) {
 		Symbol sym = resolve(name);
 		if(sym instanceof Type) {
