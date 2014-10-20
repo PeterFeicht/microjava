@@ -7,47 +7,47 @@ prog : 'program' Ident (constDecl | varDecl | classDecl)* '{' methodDecl* '}' EO
 /*
  * Rules
  */
-constDecl  : 'final' type Ident '=' literal ';' ;
-varDecl    : type Ident ( ',' Ident )* ';' ;
-classDecl  : 'class' Ident '{' varDecl* '}' ;
-methodDecl : ( type | 'void' ) Ident '(' formPars? ')' varDecl* block ;
-formPars   : param ( ',' param )* ;
-param      : type Ident ;
-type       returns [boolean array]
-           : Ident ( '[' ']' {$array = true;} )?
-           ;
+constDecl   : 'final' type Ident '=' literal ';' ;
+varDecl     : type Ident ( ',' Ident )* ';' ;
+classDecl   : 'class' Ident '{' varDecl* '}' ;
+methodDecl  : ( type | 'void' ) Ident '(' formPars? ')' varDecl* block ;
+formPars    : param ( ',' param )* ;
+param       : type Ident ;
+type        returns [boolean array]
+            : Ident ( '[' ']' {$array = true;} )?
+            ;
 
-block     : '{' statement* '}' ;
-statement : designator ( assignop expr | actPars | '++' | '--' ) ';'        # AssignStatement
-          | 'if' '(' condition ')' statement ( 'else' statement )?          # IfStatement
-          | 'while' '(' condition ')' statement                             # WhileStatement
-          | 'switch' '(' expr ')' '{' ( 'case' expr ':' statement* )* ( 'default' ':' statement* )? '}' # SwitchStatement
-          | 'break' ';'                                                     # BreakStatement
-          | 'return' expr? ';'                                              # ReturnStatement
-          | 'read' '(' designator ')' ';'                                   # ReadStatement
-          | 'print' '(' expr ( ',' Number )? ')' ';'                        # PrintStatement
-          | block                                                           # BlockStatement
-          | ';'                                                             # EmptyStatement
-          ;
-assignop  : '=' | '+=' | '-=' | '*=' | '/=' | '%=' ;
-actPars   : '(' ( expr ( ',' expr )* )? ')' ;
+block       : '{' statement* '}' ;
+statement   : designator ( assignop expr | actPars | '++' | '--' ) ';'      # AssignStatement
+            | 'if' '(' condition ')' statement ( 'else' statement )?        # IfStatement
+            | 'while' '(' condition ')' statement                           # WhileStatement
+            | 'switch' '(' expr ')' '{' ( 'case' expr ':' statement* )* ( 'default' ':' statement* )? '}' # SwitchStatement
+            | 'break' ';'                                                   # BreakStatement
+            | 'return' expr? ';'                                            # ReturnStatement
+            | 'read' '(' designator ')' ';'                                 # ReadStatement
+            | 'print' '(' expr ( ',' Number )? ')' ';'                      # PrintStatement
+            | block                                                         # BlockStatement
+            | ';'                                                           # EmptyStatement
+            ;
+assignop    : '=' | '+=' | '-=' | '*=' | '/=' | '%=' ;
+actPars     : '(' ( expr ( ',' expr )* )? ')' ;
 
-condition : condTerm ( '||' condTerm )* ;
-condTerm  : condFact ( '&&' condFact )* ;
-condFact  : expr relop expr ;
-relop     : '==' | '!=' | '>' | '>=' | '<' | '<=' ;
+condition   : condTerm ( '||' condTerm )* ;
+condTerm    : condFact ( '&&' condFact )* ;
+condFact    : expr relop expr ;
+relop       : '==' | '!=' | '>' | '>=' | '<' | '<=' ;
 
-expr       : '-'? term ( addop term )* ;
-term       : factor ( mulop factor )* ;
-factor     : designator actPars?                        # RefOrCall
-           | literal                                    # LiteralFactor
-           | 'new' Ident ( '[' expr ']' )?              # Constructor
-           | '(' expr ')'                               # Parantheses
-           ;
-designator : Ident ( '.' Ident | '[' expr ']' )* ;
-addop      : '+' | '-' ;
-mulop      : '*' | '/' | '%' ;
-literal    : Number | CharConst ;
+expr        : '-'? term ( addop term )* ;
+term        : factor ( mulop factor )* ;
+factor      : designator actPars?                       # RefOrCall
+            | literal                                   # LiteralFactor
+            | 'new' Ident ( '[' expr ']' )?             # Constructor
+            | '(' expr ')'                              # Parantheses
+            ;
+designator  : Ident ( '.' Ident | '[' expr ']' )* ;
+addop       : '+' | '-' ;
+mulop       : '*' | '/' | '%' ;
+literal     : Number | CharConst ;
 
 /*
  * Keywords
@@ -71,35 +71,35 @@ NEW     : 'new' ;
  /*
   * Separators
   */
-LPAR      : '(' ;
-RPAR      : ')' ;
-LBRACE    : '{' ;
-RBRACE    : '}' ;
-LBRACK    : '[' ;
-RBRACK    : ']' ;
-SEMICOLON : ';' ;
-COMMA     : ',' ;
-PERIOD    : '.' ;
-COLON     : ':' ;
+LPAR        : '(' ;
+RPAR        : ')' ;
+LBRACE      : '{' ;
+RBRACE      : '}' ;
+LBRACK      : '[' ;
+RBRACK      : ']' ;
+SEMICOLON   : ';' ;
+COMMA       : ',' ;
+PERIOD      : '.' ;
+COLON       : ':' ;
 
 /*
  * Operators
  */
-LSS    : '<' ;
-LEQ    : '<=' ;
-GTR    : '>' ;
-GEQ    : '>=' ;
-EQL    : '==' ;
-NEQ    : '!=' ;
-AND    : '&&' ;
-OR     : '||' ;
-PLUS   : '+' ;
-MINUS  : '-' ;
-TIMES  : '*' ;
-SLASH  : '/' ;
-REM    : '%' ;
-PPLUS  : '++' ;
-MMINUS : '--' ;
+LSS     : '<' ;
+LEQ     : '<=' ;
+GTR     : '>' ;
+GEQ     : '>=' ;
+EQL     : '==' ;
+NEQ     : '!=' ;
+AND     : '&&' ;
+OR      : '||' ;
+PLUS    : '+' ;
+MINUS   : '-' ;
+TIMES   : '*' ;
+SLASH   : '/' ;
+REM     : '%' ;
+PPLUS   : '++' ;
+MMINUS  : '--' ;
 
 ASSIGN  : '=' ;
 PLUSAS  : '+=' ;
@@ -111,22 +111,22 @@ REMAS   : '%=' ;
 /*
  * Tokens
  */
-Ident      : IdentStart IdentPart* ;
+Ident       : IdentStart IdentPart* ;
 fragment
-IdentStart : [a-zA-Z_] ;
+IdentStart  : [a-zA-Z_] ;
 fragment
-IdentPart  : IdentStart | Digit ;
+IdentPart   : IdentStart | Digit ;
 
 
-Number     : Digit+ ;
+Number      : Digit+ ;
 fragment
-Digit      : [0-9] ;
+Digit       : [0-9] ;
 
-CharConst  : '\'' ( SingleChar | EscapeSeq ) '\'' ;
+CharConst   : '\'' ( SingleChar | EscapeSeq ) '\'' ;
 fragment
-SingleChar : ~['\\] ;
+SingleChar  : ~['\\] ;
 fragment
-EscapeSeq  : '\\' [rn'\\] ;
+EscapeSeq   : '\\' [rn'\\] ;
 
-WS         : [ \t\r\n]+ -> channel(HIDDEN) ;
-Comment   : '/*' ( Comment | '*' ~[/]? | ~[*] )*? '*/' -> channel(HIDDEN) ;
+WS          : [ \t\r\n]+ -> channel(HIDDEN) ;
+Comment     : '/*' ( Comment | '*' ~[/]? | ~[*] )*? '*/' -> channel(HIDDEN) ;
