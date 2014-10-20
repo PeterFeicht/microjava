@@ -3,9 +3,14 @@ package net.feichti.microjavaeditor;
 import java.util.Iterator;
 
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IInformationControl;
+import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextHoverExtension;
+import org.eclipse.jface.text.ITextHoverExtension2;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
@@ -13,8 +18,10 @@ import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.ISourceViewerExtension2;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.editors.text.EditorsUI;
 
-public class MJTextHover implements ITextHover
+public class MJTextHover implements ITextHover, ITextHoverExtension, ITextHoverExtension2
 {
 	private MJEditor mEditor;
 	private ISourceViewer mSourceViewer;
@@ -48,6 +55,21 @@ public class MJTextHover implements ITextHover
 		}
 		
 		return null;
+	}
+
+	@Override
+	public Object getHoverInfo2(ITextViewer textViewer, IRegion hoverRegion) {
+		return getHoverInfo(textViewer, hoverRegion);
+	}
+
+	@Override
+	public IInformationControlCreator getHoverControlCreator() {
+		return new IInformationControlCreator() {
+			@Override
+			public IInformationControl createInformationControl(Shell parent) {
+				return new DefaultInformationControl(parent, EditorsUI.getTooltipAffordanceString());
+			}
+		};
 	}
 	
 	@Override
