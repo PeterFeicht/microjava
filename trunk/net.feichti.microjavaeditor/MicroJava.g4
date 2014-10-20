@@ -13,7 +13,9 @@ classDecl  : 'class' Ident '{' varDecl* '}' ;
 methodDecl : ( type | 'void' ) Ident '(' formPars? ')' varDecl* block ;
 formPars   : param ( ',' param )* ;
 param      : type Ident ;
-type       : Ident ( '[' ']' )? ;
+type       returns [boolean array]
+           : Ident ( '[' ']' {$array = true;} )?
+           ;
 
 block     : '{' statement* '}' ;
 statement : designator ( assignop expr | actPars | '++' | '--' ) ';'        # AssignStatement
