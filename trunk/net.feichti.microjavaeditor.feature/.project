@@ -3,6 +3,7 @@
 	<name>net.feichti.microjavaeditor.feature</name>
 	<comment></comment>
 	<projects>
+		<project>net.feichti.microjavaeditor</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

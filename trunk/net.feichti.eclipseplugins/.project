@@ -3,6 +3,7 @@
 	<name>net.feichti.eclipseplugins</name>
 	<comment></comment>
 	<projects>
+		<project>net.feichti.microjavaeditor.feature</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
