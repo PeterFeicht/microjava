@@ -380,7 +380,16 @@ public class MJFileModel implements ITreeContentProvider
 	
 	@Override
 	public void dispose() {
+		clear();
+	}
+
+	private void clear() {
 		mRoot = null;
+		mParser = null;
+		mDocument = null;
+		mTokens = null;
+		mSymbolTable = null;
+		mErrors.clear();
 	}
 	
 	@Override
@@ -403,12 +412,7 @@ public class MJFileModel implements ITreeContentProvider
 			}
 		}
 		
-		mRoot = null;
-		mParser = null;
-		mDocument = null;
-		mTokens = null;
-		mSymbolTable = null;
-		mErrors.clear();
+		clear();
 		
 		if(newInput != null) {
 			mDocument = mDocumentProvider.getDocument(newInput);
