@@ -38,10 +38,10 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 	public static final String ID = "net.feichti.microjavaeditor.MJEditor";
 	
 	// Preference keys
-	public final static String MATCHING_BRACKETS = "matchingBrackets";
-	public final static String HIGHLIGHT_BRACKET_AT_CARET_LOCATION = "highlightBracketAtCaretLocation";
-	public final static String ENCLOSING_BRACKETS = "enclosingBrackets";
-	public final static String MATCHING_BRACKETS_COLOR = "matchingBracketsColor";
+	public final static String PREFKEY_MATCHING_BRACKETS = "matchingBrackets";
+	public final static String PREFKEY_HIGHLIGHT_BRACKET_AT_CARET_LOCATION = "highlightBracketAtCaretLocation";
+	public final static String PREFKEY_ENCLOSING_BRACKETS = "enclosingBrackets";
+	public final static String PREFKEY_MATCHING_BRACKETS_COLOR = "matchingBracketsColor";
 	
 	private MJContentOutlinePage mOutlinePage;
 	private ICharacterPairMatcher mBracketMatcher;
@@ -159,8 +159,8 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 	@Override
 	protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
 		support.setCharacterPairMatcher(mBracketMatcher);
-		support.setMatchingCharacterPainterPreferenceKeys(MATCHING_BRACKETS, MATCHING_BRACKETS_COLOR,
-				HIGHLIGHT_BRACKET_AT_CARET_LOCATION, ENCLOSING_BRACKETS);
+		support.setMatchingCharacterPainterPreferenceKeys(PREFKEY_MATCHING_BRACKETS, PREFKEY_MATCHING_BRACKETS_COLOR,
+				PREFKEY_HIGHLIGHT_BRACKET_AT_CARET_LOCATION, PREFKEY_ENCLOSING_BRACKETS);
 		
 		setPreferenceDefaults();
 		
@@ -172,17 +172,17 @@ public class MJEditor extends TextEditor implements ISelectionChangedListener
 	 */
 	private void setPreferenceDefaults() {
 		IPreferenceStore pref = getPreferenceStore();
-		if(!pref.contains(MATCHING_BRACKETS)) {
-			pref.setValue(MATCHING_BRACKETS, true);
+		if(!pref.contains(PREFKEY_MATCHING_BRACKETS)) {
+			pref.setValue(PREFKEY_MATCHING_BRACKETS, true);
 		}
-		if(!pref.contains(MATCHING_BRACKETS_COLOR)) {
-			pref.setValue(MATCHING_BRACKETS_COLOR, "255,0,0");
+		if(!pref.contains(PREFKEY_MATCHING_BRACKETS_COLOR)) {
+			pref.setValue(PREFKEY_MATCHING_BRACKETS_COLOR, "255,0,0");
 		}
-		if(!pref.contains(HIGHLIGHT_BRACKET_AT_CARET_LOCATION)) {
-			pref.setValue(HIGHLIGHT_BRACKET_AT_CARET_LOCATION, true);
+		if(!pref.contains(PREFKEY_HIGHLIGHT_BRACKET_AT_CARET_LOCATION)) {
+			pref.setValue(PREFKEY_HIGHLIGHT_BRACKET_AT_CARET_LOCATION, true);
 		}
-		if(!pref.contains(ENCLOSING_BRACKETS)) {
-			pref.setValue(ENCLOSING_BRACKETS, false);
+		if(!pref.contains(PREFKEY_ENCLOSING_BRACKETS)) {
+			pref.setValue(PREFKEY_ENCLOSING_BRACKETS, false);
 		}
 	}
 	
